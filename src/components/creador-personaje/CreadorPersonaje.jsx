@@ -88,12 +88,23 @@ export function CreadorPersonaje({ alGuardar, alCancelar, misPartidasJugador = [
     }
 
     // Convertir nombres a objetos del catálogo
-    const equipoFinal = nombresObjetos.map(nombre => {
-      const obj = EQUIPO.find(e => e.nombre === nombre);
+    const equipoFinal = nombresObjetos.map(nombreOriginal => {
+      let nombreBase = nombreOriginal;
+      let cantidad = 1;
+      
+      const match = nombreOriginal.match(/(.+?)\s*\((\d+)\)$/);
+      if (match) {
+        nombreBase = match[1].trim();
+        cantidad = parseInt(match[2], 10);
+      }
+
+      const obj = EQUIPO.find(e => e.nombre === nombreOriginal) || EQUIPO.find(e => e.nombre === nombreBase);
+      
       return {
-        ...(obj || { nombre, tipo: 'Equipo', subtipo: 'Equipo de aventurero', coste: '—', peso: '—', descripcion: '' }),
+        ...(obj || { nombre: nombreOriginal, tipo: 'Equipo', subtipo: 'Equipo de aventurero', coste: '—', peso: '—', descripcion: '' }),
+        nombre: nombreBase,
         id_instancia: crypto.randomUUID(),
-        cantidad: 1,
+        cantidad: cantidad,
         equipado: false,
       };
     });
