@@ -23,7 +23,7 @@ const PESTANIAS = [
   { clave: 'notas', etiqueta: 'Diario', Icono: Scroll },
 ];
 
-export function FichaPersonaje({ personajeInicial, onGuardar, onVolver }) {
+export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLectura = false }) {
   const { personaje, derivado, actualizarCampo, alternarAnulacion, subirNivel } = useFichaPersonaje(personajeInicial);
   const { clases } = useDatosPersonalizados();
   const [pestaniaActiva, setPestaniaActiva] = useState('combate');
@@ -32,13 +32,20 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver }) {
   const [entradaNivel, setEntradaNivel] = useState(null);
   const [mostrarModalSubclase, setMostrarModalSubclase] = useState(false);
 
+  // Callbacks protegidos para modo lectura
+  const handleActualizarCampo = modoLectura ? () => {} : actualizarCampo;
+  const handleAlternarAnulacion = modoLectura ? () => {} : alternarAnulacion;
+  const handleSubirNivel = modoLectura ? () => {} : subirNivel;
+
   const modoSubida = personaje.puntos_vida.modo_subida;
   const claseNormalizada = personaje.clase?.toLowerCase() || '';
   const dadoGolpe = obtenerDadoGolpe(claseNormalizada, personaje.dado_golpe_personalizado);
   const claseSeleccionada = clases.find((c) => c.clave === claseNormalizada);
 
+  const pestaniasVisibles = PESTANIAS.filter(p => !modoLectura || p.clave !== 'notas');
+
   const confirmarSubidaNivel = () => {
-    subirNivel(personaje.nivel + 1, {
+    handleSubirNivel(personaje.nivel + 1, {
       modo: modoSubida,
       valor_tirada: modoSubida === 'tirada' ? entradaNivel.valor : undefined,
       valor_manual: modoSubida === 'manual' ? entradaNivel.valor : undefined,
@@ -47,22 +54,22 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver }) {
   };
 
   useEffect(() => {
+    if (modoLectura) return;
     setEstadoGuardado('guardando');
     const timer = setTimeout(() => {
       onGuardar?.(personaje);
       setEstadoGuardado('guardado');
     }, 500);
     return () => clearTimeout(timer);
-  }, [personaje, onGuardar]);
+  }, [personaje, onGuardar, modoLectura]);
 
   // Efecto para abrir el modal de subclase
   useEffect(() => {
+    if (modoLectura) return;
     if (claseSeleccionada && personaje.nivel >= claseSeleccionada.nivelSubclase && !personaje.subclase) {
       setMostrarModalSubclase(true);
-    } else if (personaje.subclase) {
-      setMostrarModalSubclase(false);
     }
-  }, [personaje.nivel, personaje.subclase, claseSeleccionada]);
+  }, [personaje.nivel, personaje.subclase, claseSeleccionada, modoLectura]);
 
   const elegirSubclaseModal = (sub) => {
     actualizarCampo('subclase', sub.toLowerCase());
@@ -73,11 +80,15 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver }) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl p-4 sm:p-6 animate-fade-in">
-      <header className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6">
+    <div className={`mx-auto max-w-5xl p-4 sm:p-6 animate-fade-in h-full flex flex-col ${modoLectura ? 'pointer-events-none' : ''}`}>
+      {/* Permitimos clics en la cabecera para poder volver y cambiar pestañas */}
+      <header className="pointer-events-auto mb-6 flex flex-wrap items-center justify-between gap-4 animate-fade-in px-2">
         <div className="flex items-center gap-4">
-          <button onClick={onVolver} className="p-2 bg-dndoscuro-400 rounded-full hover:bg-sangre-700 transition-colors">
-            <ChevronLeft className="w-5 h-5 text-white" />
+          <button 
+            onClick={onVolver}
+            className="flex items-center justify-center p-2 rounded-full bg-dndoscuro-400 hover:bg-white/10 text-stone-400 hover:text-white transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-sangre-600 shadow-neon group cursor-pointer">
             {personaje.avatar ? (
@@ -160,29 +171,39 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver }) {
       <main className="glass-panel p-6 shadow-inner relative overflow-hidden min-h-[500px]">
         {pestaniaActiva === 'combate' && (
           <div className="animate-fade-in relative z-10 flex flex-col gap-6">
-            <PanelDatosGenerales personaje={personaje} actualizarCampo={actualizarCampo} soloLectura={false} />
+            <PanelDatosGenerales personaje={personaje} actualizarCampo={handleActualizarCampo} soloLectura={modoLectura} />
             <div className="h-px w-full bg-white/10 my-2"></div>
-            <PanelCombate personaje={personaje} derivado={derivado} actualizarCampo={actualizarCampo} alternarAnulacion={alternarAnulacion} />
+            <PanelCombate personaje={personaje} derivado={derivado} actualizarCampo={handleActualizarCampo} alternarAnulacion={handleAlternarAnulacion} />
           </div>
         )}
         {pestaniaActiva === 'atributos' && (
           <div className="animate-fade-in relative z-10">
-            <PanelHabilidades personaje={personaje} derivado={derivado} actualizarCampo={actualizarCampo} alternarAnulacion={alternarAnulacion} />
+            <PanelHabilidades personaje={personaje} derivado={derivado} actualizarCampo={handleActualizarCampo} alternarAnulacion={handleAlternarAnulacion} />
           </div>
         )}
         {pestaniaActiva === 'inventario' && (
           <div className="animate-fade-in relative z-10">
-            <PanelInventario personaje={personaje} actualizarCampo={actualizarCampo} />
+            <PanelInventario personaje={personaje} actualizarCampo={handleActualizarCampo} />
           </div>
         )}
         {pestaniaActiva === 'conjuros' && (
           <div className="animate-fade-in relative z-10">
-            <PanelConjuros personaje={personaje} derivado={derivado} alternarAnulacion={alternarAnulacion} actualizarCampo={actualizarCampo} />
+            <PanelConjuros personaje={personaje} derivado={derivado} alternarAnulacion={handleAlternarAnulacion} actualizarCampo={handleActualizarCampo} />
           </div>
         )}
         {pestaniaActiva === 'rasgos' && (
           <div className="animate-fade-in relative z-10">
-            <PanelRasgos personaje={personaje} actualizarCampo={actualizarCampo} subirNivel={subirNivel} />
+            <PanelRasgos personaje={personaje} actualizarCampo={handleActualizarCampo} subirNivel={handleSubirNivel} />
+          </div>
+        )}
+        {pestaniaActiva === 'notas' && (
+          <div className="animate-fade-in relative z-10 h-full flex flex-col">
+            <textarea
+              value={personaje.notas || ''}
+              onChange={(e) => handleActualizarCampo('notas', e.target.value)}
+              placeholder="Apunta aquí tus misiones, pistas, nombres de PNJs y todo lo que necesites recordar..."
+              className="flex-1 w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors h-[400px]"
+            />
           </div>
         )}
         {/* Decoración de fondo */}

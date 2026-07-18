@@ -10,6 +10,8 @@ import { ModalAgregarParticipante } from './ModalAgregarParticipante.jsx';
 import { Bestiario } from '../bestiario/Bestiario.jsx';
 import { CalculadoraEncuentros } from '../bestiario/CalculadoraEncuentros.jsx';
 
+import { FichaPersonaje } from '../ficha-personaje/FichaPersonaje.jsx';
+
 const PESTANIAS = [
   { clave: 'personajes', etiqueta: 'Personajes', Icono: Users },
   { clave: 'combate', etiqueta: 'Tracker de Iniciativa', Icono: Swords },
@@ -51,6 +53,22 @@ export function PanelMaster({ session, partida, personajes, misPartidasMaster, o
 
   const [pestaniaActiva, setPestaniaActiva] = useState('personajes');
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
+  const [personajeInspeccionadoId, setPersonajeInspeccionadoId] = useState(null);
+
+  const personajeInspeccionado = personajes.find(p => p.id === personajeInspeccionadoId);
+
+  if (personajeInspeccionado) {
+    return (
+      <div className="h-full">
+        <FichaPersonaje 
+          personajeInicial={personajeInspeccionado} 
+          onGuardar={() => {}} 
+          onVolver={() => setPersonajeInspeccionadoId(null)}
+          modoLectura={true}
+        />
+      </div>
+    );
+  }
 
   const agregarMonstruoAIniciativa = (monstruo) => {
     const modIniciativa = modificadorCaracteristica(monstruo.caracteristicas.des);
@@ -100,6 +118,7 @@ export function PanelMaster({ session, partida, personajes, misPartidasMaster, o
               <VistaGlobalPersonajes 
                 resumenesPersonajes={resumenesPersonajes} 
                 onExpulsarPersonaje={onExpulsarPersonaje} 
+                onInspeccionarPersonaje={setPersonajeInspeccionadoId}
               />
             )}
             {pestaniaActiva === 'combate' && (

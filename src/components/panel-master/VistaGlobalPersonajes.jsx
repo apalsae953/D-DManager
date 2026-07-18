@@ -2,7 +2,7 @@ import { Heart, Shield, Eye, UserMinus } from 'lucide-react';
 
 // Vista global en tiempo real de los personajes vinculados a la partida:
 // vida actual/maxima, CA, percepcion pasiva y estado (condiciones activas).
-export function VistaGlobalPersonajes({ resumenesPersonajes, onExpulsarPersonaje }) {
+export function VistaGlobalPersonajes({ resumenesPersonajes, onExpulsarPersonaje, onInspeccionarPersonaje }) {
   if (resumenesPersonajes.length === 0) {
     return <p className="text-sm text-stone-400">Todavia no hay personajes vinculados a esta partida.</p>;
   }
@@ -30,14 +30,18 @@ export function VistaGlobalPersonajes({ resumenesPersonajes, onExpulsarPersonaje
           {resumenesPersonajes.map((p) => {
             const porcentajeVida = p.pvMaximo > 0 ? Math.round((p.pvActual / p.pvMaximo) * 100) : 0;
             return (
-              <tr key={p.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
+              <tr 
+                key={p.id} 
+                className="border-t border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
+                onClick={() => onInspeccionarPersonaje?.(p.id)}
+              >
                 <td className="px-3 py-2">
                   <p className="font-bold font-cinzel text-stone-200">{p.nombre || 'Sin nombre'}</p>
                   <p className="text-xs text-stone-400">
                     Nivel {p.nivel} · <span className="capitalize">{p.clase}</span>
                   </p>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-stone-200 w-12 text-right">
                       {p.pvActual}/{p.pvMaximo}
@@ -50,9 +54,9 @@ export function VistaGlobalPersonajes({ resumenesPersonajes, onExpulsarPersonaje
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-2 font-bold text-stone-200 text-center">{p.clase_armadura}</td>
-                <td className="px-3 py-2 font-bold text-stone-200 text-center">{p.percepcionPasiva}</td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 font-bold text-stone-200 text-center" onClick={(e) => e.stopPropagation()}>{p.clase_armadura}</td>
+                <td className="px-3 py-2 font-bold text-stone-200 text-center" onClick={(e) => e.stopPropagation()}>{p.percepcionPasiva}</td>
+                <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                   {p.condiciones.length === 0 ? (
                     <span className="text-xs text-stone-500 italic">Sin condiciones</span>
                   ) : (
@@ -65,10 +69,11 @@ export function VistaGlobalPersonajes({ resumenesPersonajes, onExpulsarPersonaje
                     </div>
                   )}
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                   {onExpulsarPersonaje && (
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (window.confirm(`¿Seguro que quieres expulsar a ${p.nombre || 'este personaje'} de la mesa?`)) {
                           onExpulsarPersonaje(p.id);
                         }
