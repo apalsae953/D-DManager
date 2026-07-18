@@ -6,7 +6,7 @@ import { ModalCreadorMonstruo } from './ModalCreadorMonstruo.jsx';
 // Presentacional: recibe la lista ya filtrada y el estado de busqueda desde
 // el hook useBestiario (elevado a PanelMaster para compartirlo con la
 // Calculadora de Encuentros y el Tracker de Iniciativa).
-export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, onAgregarAIniciativa }) {
+export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, onAgregarAIniciativa, onEliminarMonstruo, toggleVisibilidad, modoGlobal = false }) {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [paginaActiva, setPaginaActiva] = useState(1);
   const [filtroTipo, setFiltroTipo] = useState('todos');
@@ -59,21 +59,24 @@ export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, o
         </div>
         
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+          <div className="relative flex-1 sm:flex-none">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
             <input
+              type="text"
+              placeholder="Buscar por nombre o tipo..."
               value={busqueda}
               onChange={handleBusqueda}
-              placeholder="Buscar por nombre o tipo..."
-              className="w-full input-dnd py-2 pl-10 pr-3"
+              className="w-full sm:w-64 rounded-md border border-white/10 bg-dndoscuro-900/80 pl-9 pr-4 py-1.5 text-sm text-stone-200 placeholder-stone-500 focus:border-sangre-500 focus:outline-none focus:ring-1 focus:ring-sangre-500 transition-all"
             />
           </div>
-          <button
-            onClick={() => setModalAbierto(true)}
-            className="btn-primary whitespace-nowrap"
-          >
-            <Plus className="h-4 w-4" /> Crear
-          </button>
+          {!modoGlobal && onCrearMonstruo && (
+            <button
+              onClick={() => setModalAbierto(true)}
+              className="flex items-center justify-center gap-2 rounded-md bg-sangre-700 px-4 py-1.5 text-sm font-bold text-white transition-all hover:bg-sangre-600 hover:shadow-neon w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4" /> Crear Monstruo
+            </button>
+          )}
         </div>
       </div>
 
@@ -83,7 +86,13 @@ export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, o
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {monstruosPaginados.map((m) => (
-              <TarjetaMonstruo key={m.id} monstruo={m} onAgregarAIniciativa={onAgregarAIniciativa} />
+              <TarjetaMonstruo 
+                key={m.id} 
+                monstruo={m} 
+                onAgregar={modoGlobal ? undefined : onAgregarAIniciativa}
+                onEliminar={modoGlobal ? undefined : onEliminarMonstruo}
+                onToggleVisibilidad={modoGlobal ? undefined : toggleVisibilidad}
+              />
             ))}
           </div>
           

@@ -8,12 +8,15 @@ import { CreadorPersonaje } from './components/creador-personaje/CreadorPersonaj
 import { PARTIDA_DEMO, PERSONAJES_DEMO } from './datos/datosDemo.js';
 
 import { crearPersonajePorDefecto } from './hooks/useFichaPersonaje.js';
-import { LogOut } from 'lucide-react';
+import { LogOut, Skull, Swords, Users, Shield } from 'lucide-react';
+import { Bestiario } from './components/bestiario/Bestiario.jsx';
+import { useBestiario } from './hooks/useBestiario.js';
 
 export default function App() {
   const [session, setSession] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [modoLocal, setModoLocal] = useState(false);
+  const { monstruos: monstruosGlobales, busqueda: busquedaBestiario, setBusqueda: setBusquedaBestiario } = useBestiario();
 
   const [vista, setVista] = useState('listaPersonajes'); // listaPersonajes, creadorPersonaje, ficha, master
   const [partida, setPartida] = useState(() => {
@@ -351,9 +354,14 @@ export default function App() {
         
         if (joinError && joinError.code === '23505') {
           // Ya era miembro
-          setPartida(pData);
+          alert("Ya eres miembro de esta partida.");
         } else if (!joinError) {
-          setPartida(pData);
+          setMisPartidasJugador(prev => {
+            // Evitar duplicados
+            if (prev.find(p => p.id === pData.id)) return prev;
+            return [...prev, pData];
+          });
+          alert(`¡Te has unido con éxito a la campaña: ${pData.nombre}!`);
         } else {
           console.error(joinError);
           alert("Ha ocurrido un error al unirse a la partida: " + joinError.message);
@@ -378,20 +386,52 @@ export default function App() {
   return (
     <div className="min-h-screen text-stone-200">
       {/* Navegación Principal */}
-      <div className="mx-auto flex max-w-5xl items-center gap-4 p-4 border-b border-white/5">
-        <h1 className="text-xl font-cinzel font-bold text-sangre-500 mr-4">D&D Manager</h1>
-        <button
-          onClick={() => setVista('listaPersonajes')}
-          className={`px-3 py-1 text-sm font-semibold transition-colors ${['listaPersonajes', 'creadorPersonaje', 'ficha'].includes(vista) ? 'text-white border-b-2 border-sangre-600' : 'text-stone-500 hover:text-stone-300'}`}
-        >
-          Jugador
-        </button>
-        <button
-          onClick={() => setVista('master')}
-          className={`px-3 py-1 text-sm font-semibold transition-colors ${vista === 'master' ? 'text-white border-b-2 border-sangre-600' : 'text-stone-500 hover:text-stone-300'}`}
-        >
-          Dungeon Master
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-dndoscuro-900/80 p-4 shadow-xl backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 mr-4">
+            <Swords className="h-6 w-6 text-sangre-500" />
+            <span className="font-cinzel text-xl font-bold tracking-wider text-stone-100 hidden sm:inline-block">D&D Manager</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setVista('listaPersonajes');
+                setPersonajeActivo(null);
+                setPartida(null); // Limpiar la partida al salir del DM
+              }}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 font-cinzel text-sm font-semibold transition-all ${
+                vista === 'listaPersonajes' || vista === 'ficha' || vista === 'creadorPersonaje' ? 'bg-sangre-700 text-white shadow-md' : 'text-stone-400 hover:bg-white/10 hover:text-stone-200'
+              }`}
+            >
+              <Users className="h-4 w-4" /> Mis Personajes
+            </button>
+            <button
+              onClick={() => {
+                setVista('master');
+                setPersonajeActivo(null);
+                // No limpiamos partida aquí para que el DM recuerde en cuál estaba
+              }}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 font-cinzel text-sm font-semibold transition-all ${
+                vista === 'master' ? 'bg-sangre-700 text-white shadow-md' : 'text-stone-400 hover:bg-white/10 hover:text-stone-200'
+              }`}
+            >
+              <Shield className="h-4 w-4" /> Dungeon Master
+            </button>
+            <button
+              onClick={() => {
+                setVista('bestiario');
+                setPersonajeActivo(null);
+                setPartida(null);
+              }}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 font-cinzel text-sm font-semibold transition-all ${
+                vista === 'bestiario' ? 'bg-sangre-700 text-white shadow-md' : 'text-stone-400 hover:bg-white/10 hover:text-stone-200'
+              }`}
+            >
+              <Skull className="h-4 w-4" /> Bestiario
+            </button>
+          </div>
+        </div>
         <div className="flex-1" />
         {modoLocal ? (
           <div className="text-sm font-semibold text-amber-500 mr-4 border border-amber-500/30 bg-amber-500/10 px-3 py-1 rounded">
@@ -458,6 +498,19 @@ export default function App() {
           onExpulsarPersonaje={(id) => manejarAsignacionPartida(id, null)}
           onSalirPartida={() => setPartida(null)}
         />
+      )}
+
+      {vista === 'bestiario' && (
+        <div className="mx-auto max-w-5xl p-4 sm:p-6">
+          <h2 className="text-3xl font-cinzel text-sangre-100 mb-6">Bestiario Global</h2>
+          <p className="text-stone-400 mb-8">Consulta las criaturas y monstruos del mundo. Los Dungeon Masters pueden crear sus propias criaturas exclusivas y revelarlas aquí.</p>
+          <Bestiario 
+            monstruos={monstruosGlobales} 
+            busqueda={busquedaBestiario} 
+            setBusqueda={setBusquedaBestiario} 
+            modoGlobal={true}
+          />
+        </div>
       )}
     </div>
   );
