@@ -41,7 +41,7 @@ export function VistaGlobalPersonajes({ resumenesPersonajes, onExpulsarPersonaje
                     Nivel {p.nivel} · <span className="capitalize">{p.clase}</span>
                   </p>
                 </td>
-                <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-stone-200 w-12 text-right">
                       {p.pvActual}/{p.pvMaximo}
@@ -54,9 +54,9 @@ export function VistaGlobalPersonajes({ resumenesPersonajes, onExpulsarPersonaje
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-2 font-bold text-stone-200 text-center" onClick={(e) => e.stopPropagation()}>{p.clase_armadura}</td>
-                <td className="px-3 py-2 font-bold text-stone-200 text-center" onClick={(e) => e.stopPropagation()}>{p.percepcionPasiva}</td>
-                <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                <td className="px-3 py-2 font-bold text-stone-200 text-center">{p.clase_armadura}</td>
+                <td className="px-3 py-2 font-bold text-stone-200 text-center">{p.percepcionPasiva}</td>
+                <td className="px-3 py-2">
                   {p.condiciones.length === 0 ? (
                     <span className="text-xs text-stone-500 italic">Sin condiciones</span>
                   ) : (

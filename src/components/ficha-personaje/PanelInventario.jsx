@@ -17,7 +17,16 @@ export function PanelInventario({ personaje, actualizarCampo }) {
   ).slice(0, 30);
 
   const añadirObjeto = (objeto) => {
-    const nuevoEquipo = [...equipoActual, { ...objeto, id_instancia: crypto.randomUUID(), cantidad: 1, equipado: false }];
+    let nombre = objeto.nombre;
+    let cantidad = 1;
+    
+    const match = nombre.match(/(.+?)\s*\((\d+)\)$/);
+    if (match) {
+      nombre = match[1].trim();
+      cantidad = parseInt(match[2], 10);
+    }
+
+    const nuevoEquipo = [...equipoActual, { ...objeto, nombre, id_instancia: crypto.randomUUID(), cantidad, equipado: false }];
     actualizarCampo('equipo', nuevoEquipo);
   };
 
@@ -82,7 +91,19 @@ export function PanelInventario({ personaje, actualizarCampo }) {
         {equipoActual.length === 0 ? (
           <p className="text-stone-500 text-sm italic p-4 text-center border border-dashed border-white/10 rounded-lg">Tu inventario está vacío. Busca objetos en el manual o crea los tuyos propios.</p>
         ) : (
-          <div className="space-y-1 max-h-[500px] overflow-y-auto pr-2 divide-y divide-white/5 bg-dndoscuro-400/30 rounded-lg border border-white/5">
+          <div 
+            className="space-y-1 max-h-[500px] overflow-y-auto pr-2 divide-y divide-white/5 bg-dndoscuro-400/30 rounded-lg border border-white/5"
+            onDragOver={(e) => {
+              const container = e.currentTarget;
+              const rect = container.getBoundingClientRect();
+              const y = e.clientY - rect.top;
+              if (y < 40) {
+                container.scrollTop -= 15;
+              } else if (y > rect.height - 40) {
+                container.scrollTop += 15;
+              }
+            }}
+          >
             {equipoActual.map((item, index) => (
               <ObjetoItem 
                 key={item.id_instancia} 
