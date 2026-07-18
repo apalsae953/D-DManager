@@ -268,6 +268,9 @@ export default function App() {
     
     if (data && !error) {
       setPartida(data);
+    } else if (error) {
+      console.error(error);
+      alert("Error al crear partida: " + error.message);
     }
   };
 
