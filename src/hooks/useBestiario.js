@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import { MONSTRUOS_SRD } from '../datos/monstruosSRD.js';
-import { supabase } from '../supabase.js';
+import { supabase } from '../supabaseClient.js';
 
 export function useBestiario() {
   const [personalizados, setPersonalizados] = useState([]);
