@@ -95,23 +95,23 @@ function SeccionRasgos({ titulo, lista, esNota, contenido, expandido, setExpandi
         <div className="bg-dndoscuro-400/30 rounded-md p-3">
           {editando ? (
             <textarea
-              className="w-full bg-dndoscuro-300 text-stone-200 p-2 rounded-md border border-white/10 overflow-hidden min-h-[100px] resize-none"
+              className="w-full bg-dndoscuro-300 text-stone-200 p-2 rounded-md border border-white/10 overflow-hidden min-h-[100px] resize-none break-all"
               value={contenido}
               onChange={(e) => {
                 onGuardar(e.target.value);
-                e.target.style.height = '0px';
+                e.target.style.height = 'auto';
                 e.target.style.height = (e.target.scrollHeight + 2) + 'px';
               }}
               ref={(el) => {
                 if (el) {
-                  el.style.height = '0px';
+                  el.style.height = 'auto';
                   el.style.height = (el.scrollHeight + 2) + 'px';
                 }
               }}
               placeholder="Escribe tus notas aquí..."
             />
           ) : (
-            <p className="text-sm text-stone-300 whitespace-pre-wrap">{contenido || 'No hay notas.'}</p>
+            <p className="text-sm text-stone-300 whitespace-pre-wrap break-all">{contenido || 'No hay notas.'}</p>
           )}
         </div>
       ) : (
@@ -130,16 +130,16 @@ function SeccionRasgos({ titulo, lista, esNota, contenido, expandido, setExpandi
                 value={nuevaDesc} 
                 onChange={e => {
                   setNuevaDesc(e.target.value);
-                  e.target.style.height = '0px';
+                  e.target.style.height = 'auto';
                   e.target.style.height = (e.target.scrollHeight + 2) + 'px';
                 }}
                 ref={(el) => {
                   if (el) {
-                    el.style.height = '0px';
+                    el.style.height = 'auto';
                     el.style.height = (el.scrollHeight + 2) + 'px';
                   }
                 }}
-                className="w-full bg-dndoscuro-300 text-stone-200 p-1 rounded border border-white/10 text-sm overflow-hidden min-h-[60px] resize-none" 
+                className="w-full bg-dndoscuro-300 text-stone-200 p-1 rounded border border-white/10 text-sm overflow-hidden min-h-[60px] resize-none break-all" 
               />
               <div className="flex justify-end gap-2">
                 <button onClick={() => setCreando(false)} className="px-3 py-1 text-xs text-stone-400 hover:text-white">Cancelar</button>

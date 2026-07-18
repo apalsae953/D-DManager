@@ -211,17 +211,17 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
               value={personaje.notas || ''}
               onChange={(e) => {
                 handleActualizarCampo('notas', e.target.value);
-                e.target.style.height = '0px';
+                e.target.style.height = 'auto';
                 e.target.style.height = (e.target.scrollHeight + 2) + 'px';
               }}
               ref={(el) => {
                 if (el) {
-                  el.style.height = '0px';
+                  el.style.height = 'auto';
                   el.style.height = (el.scrollHeight + 2) + 'px';
                 }
               }}
               placeholder="Apunta aquí tus misiones, pistas, nombres de PNJs y todo lo que necesites recordar..."
-              className="w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors overflow-hidden min-h-[400px]"
+              className="w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors overflow-hidden min-h-[400px] break-all"
             />
           </div>
         )}

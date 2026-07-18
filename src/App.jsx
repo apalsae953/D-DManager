@@ -423,24 +423,24 @@ export default function App() {
     <div className="min-h-screen text-stone-200">
       {/* Navegación Principal */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-dndoscuro-900/80 p-4 shadow-xl backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 mr-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-6">
+          <div className="flex items-center gap-2 sm:mr-4">
             <Swords className="h-6 w-6 text-sangre-500" />
             <span className="font-cinzel text-xl font-bold tracking-wider text-stone-100 hidden sm:inline-block">D&D Manager</span>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2">
             <button
               onClick={() => {
                 setVista('listaPersonajes');
                 setPersonajeActivo(null);
                 setPartida(null); // Limpiar la partida al salir del DM
               }}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 font-cinzel text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 font-cinzel text-[10px] sm:text-sm font-semibold transition-all ${
                 vista === 'listaPersonajes' || vista === 'ficha' || vista === 'creadorPersonaje' ? 'bg-sangre-700 text-white shadow-md' : 'text-stone-400 hover:bg-white/10 hover:text-stone-200'
               }`}
             >
-              <Users className="h-4 w-4" /> Mis Personajes
+              <Users className="h-3 w-3 sm:h-4 sm:w-4" /> Mis Personajes
             </button>
             <button
               onClick={() => {
@@ -448,11 +448,11 @@ export default function App() {
                 setPersonajeActivo(null);
                 // No limpiamos partida aquí para que el DM recuerde en cuál estaba
               }}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 font-cinzel text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 font-cinzel text-[10px] sm:text-sm font-semibold transition-all ${
                 vista === 'master' ? 'bg-sangre-700 text-white shadow-md' : 'text-stone-400 hover:bg-white/10 hover:text-stone-200'
               }`}
             >
-              <Shield className="h-4 w-4" /> Dungeon Master
+              <Shield className="h-3 w-3 sm:h-4 sm:w-4" /> Dungeon Master
             </button>
             <button
               onClick={() => {
@@ -460,11 +460,11 @@ export default function App() {
                 setPersonajeActivo(null);
                 setPartida(null);
               }}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 font-cinzel text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1 sm:gap-2 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 font-cinzel text-[10px] sm:text-sm font-semibold transition-all ${
                 vista === 'bestiario' ? 'bg-sangre-700 text-white shadow-md' : 'text-stone-400 hover:bg-white/10 hover:text-stone-200'
               }`}
             >
-              <Skull className="h-4 w-4" /> Bestiario
+              <Skull className="h-3 w-3 sm:h-4 sm:w-4" /> Bestiario
             </button>
           </div>
         </div>

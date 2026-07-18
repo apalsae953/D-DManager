@@ -160,17 +160,17 @@ export function PanelMaster({ session, partida, personajes, misPartidasMaster, o
                   value={partida.notas_master || ''}
                   onChange={(e) => {
                     onGuardarNotas?.(e.target.value);
-                    e.target.style.height = '0px';
+                    e.target.style.height = 'auto';
                     e.target.style.height = (e.target.scrollHeight + 2) + 'px';
                   }}
                   ref={(el) => {
                     if (el) {
-                      el.style.height = '0px';
+                      el.style.height = 'auto';
                       el.style.height = (el.scrollHeight + 2) + 'px';
                     }
                   }}
                   placeholder="Apunta aquí la trama, nombres de NPCs, secretos o recordatorios para la próxima sesión..."
-                  className="w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors overflow-hidden min-h-[400px]"
+                  className="w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors overflow-hidden min-h-[400px] break-all"
                 />
               </div>
             )}
