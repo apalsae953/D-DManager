@@ -5,6 +5,7 @@ import { supabase } from '../supabaseClient.js';
 export function useBestiario() {
   const [personalizados, setPersonalizados] = useState([]);
   const [busqueda, setBusqueda] = useState('');
+  const [userId, setUserId] = useState(null);
 
   // Cargar de Supabase al montar
   useEffect(() => {
@@ -18,6 +19,8 @@ export function useBestiario() {
         } catch { /* ignorar */ }
         return;
       }
+      
+      setUserId(session.user.id);
 
       // Cargar monstruos personalizados (los nuestros o los públicos/visibles si tuviéramos tabla)
       // Como no hay tabla, leemos el campo "visible_para_jugadores" que guardaremos en Supabase
@@ -105,5 +108,14 @@ export function useBestiario() {
     await supabase.from('monstruos').update({ fuente: !actualVisible ? 'visible' : 'oculto' }).eq('id', id);
   }, []);
 
-  return { monstruos, todos, busqueda, setBusqueda, crearMonstruo, eliminarMonstruo, toggleVisibilidad };
+  return {
+    monstruos,
+    todos,
+    busqueda,
+    setBusqueda,
+    crearMonstruo,
+    eliminarMonstruo,
+    toggleVisibilidad,
+    userId
+  };
 }

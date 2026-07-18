@@ -7,7 +7,9 @@ function formatoNivelDesafio(nd) {
   return String(nd);
 }
 
-export function TarjetaMonstruo({ monstruo, onAgregar, onEliminar, onToggleVisibilidad }) {
+export function TarjetaMonstruo({ monstruo, onAgregar, onEliminar, onToggleVisibilidad, currentUserId }) {
+  const isPropietario = currentUserId && monstruo.propietario_id === currentUserId;
+
   return (
     <div className="flex h-full flex-col justify-between rounded-lg border border-white/10 bg-dndoscuro-400/50 p-3 hover:bg-white/5 transition-colors">
       <div>
@@ -46,7 +48,7 @@ export function TarjetaMonstruo({ monstruo, onAgregar, onEliminar, onToggleVisib
           </button>
         )}
         
-        {onToggleVisibilidad && !monstruo.es_srd && (
+        {onToggleVisibilidad && isPropietario && (
           <button
             onClick={() => onToggleVisibilidad(monstruo.id, monstruo.visible)}
             className={`flex items-center justify-center rounded-lg border border-white/10 px-3 py-2 transition-colors ${
@@ -58,15 +60,15 @@ export function TarjetaMonstruo({ monstruo, onAgregar, onEliminar, onToggleVisib
           </button>
         )}
 
-        {onEliminar && !monstruo.es_srd && (
+        {onEliminar && isPropietario && (
           <button
             onClick={() => {
-              if (window.confirm(`¿Seguro que quieres borrar a ${monstruo.nombre}?`)) {
+              if (window.confirm(`¿Seguro que quieres eliminar a ${monstruo.nombre}?`)) {
                 onEliminar(monstruo.id);
               }
             }}
-            className="flex items-center justify-center rounded-lg border border-white/10 bg-dndoscuro-300 px-3 py-2 text-stone-500 hover:bg-red-900/60 hover:text-red-400 transition-colors"
-            title="Borrar monstruo"
+            className="flex items-center justify-center rounded-lg border border-white/10 bg-dndoscuro-300 px-3 py-2 text-stone-500 transition-colors hover:bg-red-900/40 hover:border-red-500/50 hover:text-red-400"
+            title="Eliminar del bestiario"
           >
             <Trash2 className="h-4 w-4" />
           </button>

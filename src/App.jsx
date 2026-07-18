@@ -22,7 +22,8 @@ export default function App() {
     setBusqueda: setBusquedaBestiario,
     crearMonstruo: crearMonstruoGlobal,
     eliminarMonstruo: eliminarMonstruoGlobal,
-    toggleVisibilidad: toggleVisibilidadGlobal
+    toggleVisibilidad: toggleVisibilidadGlobal,
+    userId: currentUserId
   } = useBestiario();
 
   const [vista, setVista] = useState('listaPersonajes'); // listaPersonajes, creadorPersonaje, ficha, master
@@ -333,6 +334,7 @@ export default function App() {
     
     if (data && !error) {
       setPartida(data);
+      setMisPartidasMaster(prev => [...prev, data]);
     } else if (error) {
       console.error(error);
       alert("Error al crear partida: " + error.message);
@@ -400,7 +402,8 @@ export default function App() {
           alert("Ha ocurrido un error al unirse a la partida: " + joinError.message);
         }
       } else {
-        alert("Eres el creador de esta partida. Puedes gestionarla desde el Panel de Master.");
+        manejarAsignacionPartida(personajeId, pData.id);
+        alert(`Has vinculado el personaje a tu propia campaña: ${pData.nombre}`);
       }
     } else {
       console.error(pError);
@@ -493,7 +496,7 @@ export default function App() {
         <ListaPersonajes
           personajes={personajes}
           partida={partida}
-          misPartidasJugador={misPartidasJugador}
+          misPartidasJugador={[...misPartidasJugador, ...misPartidasMaster.filter(m => !misPartidasJugador.find(j => j.id === m.id))]}
           alSeleccionar={(p) => { setPersonajeActivo(p); setVista('ficha'); }}
           alCrear={() => setVista('creadorPersonaje')}
           alEliminar={manejarEliminarPersonaje}
@@ -547,6 +550,7 @@ export default function App() {
             onCrearMonstruo={crearMonstruoGlobal}
             toggleVisibilidad={toggleVisibilidadGlobal}
             onEliminarMonstruo={eliminarMonstruoGlobal}
+            currentUserId={currentUserId}
           />
         </div>
       )}

@@ -38,7 +38,16 @@ export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccio
     terminarCombate,
   } = usePanelMaster(personajes);
 
-  const { monstruos, todos: todosLosMonstruos, busqueda, setBusqueda, crearMonstruo } = useBestiario();
+  const { 
+    monstruos, 
+    todos: todosLosMonstruos, 
+    busqueda, 
+    setBusqueda, 
+    crearMonstruo,
+    eliminarMonstruo,
+    toggleVisibilidad,
+    userId 
+  } = useBestiario();
 
   const [pestaniaActiva, setPestaniaActiva] = useState('personajes');
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
@@ -109,12 +118,15 @@ export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccio
               />
             )}
             {pestaniaActiva === 'bestiario' && (
-              <Bestiario
+              <Bestiario 
                 monstruos={monstruos}
                 busqueda={busqueda}
                 setBusqueda={setBusqueda}
                 onCrearMonstruo={crearMonstruo}
                 onAgregarAIniciativa={agregarMonstruoAIniciativa}
+                onEliminarMonstruo={eliminarMonstruo}
+                toggleVisibilidad={toggleVisibilidad}
+                currentUserId={userId}
               />
             )}
             {pestaniaActiva === 'calculadora' && (

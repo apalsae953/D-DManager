@@ -6,7 +6,7 @@ import { ModalCreadorMonstruo } from './ModalCreadorMonstruo.jsx';
 // Presentacional: recibe la lista ya filtrada y el estado de busqueda desde
 // el hook useBestiario (elevado a PanelMaster para compartirlo con la
 // Calculadora de Encuentros y el Tracker de Iniciativa).
-export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, onAgregarAIniciativa, onEliminarMonstruo, toggleVisibilidad, modoGlobal = false }) {
+export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, onAgregarAIniciativa, onEliminarMonstruo, toggleVisibilidad, currentUserId, modoGlobal = false }) {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [paginaActiva, setPaginaActiva] = useState(1);
   const [filtroTipo, setFiltroTipo] = useState('todos');
@@ -90,8 +90,9 @@ export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, o
                 key={m.id} 
                 monstruo={m} 
                 onAgregar={modoGlobal ? undefined : onAgregarAIniciativa}
-                onEliminar={modoGlobal ? undefined : onEliminarMonstruo}
-                onToggleVisibilidad={modoGlobal ? undefined : toggleVisibilidad}
+                onEliminar={onEliminarMonstruo}
+                onToggleVisibilidad={toggleVisibilidad}
+                currentUserId={currentUserId}
               />
             ))}
           </div>
