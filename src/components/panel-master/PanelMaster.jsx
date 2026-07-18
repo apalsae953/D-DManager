@@ -158,15 +158,15 @@ export function PanelMaster({ session, partida, personajes, misPartidasMaster, o
                 </h3>
                 <textarea
                   value={partida.notas_master || ''}
-                  onChange={(e) => onGuardarNotas?.(e.target.value)}
-                  onInput={(e) => {
-                    e.target.style.height = 'auto';
-                    e.target.style.height = e.target.scrollHeight + 'px';
+                  onChange={(e) => {
+                    onGuardarNotas?.(e.target.value);
+                    e.target.style.height = '0px';
+                    e.target.style.height = (e.target.scrollHeight + 2) + 'px';
                   }}
                   ref={(el) => {
                     if (el) {
-                      el.style.height = 'auto';
-                      el.style.height = el.scrollHeight + 'px';
+                      el.style.height = '0px';
+                      el.style.height = (el.scrollHeight + 2) + 'px';
                     }
                   }}
                   placeholder="Apunta aquí la trama, nombres de NPCs, secretos o recordatorios para la próxima sesión..."

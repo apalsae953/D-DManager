@@ -40,26 +40,26 @@ export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, o
         <div className="flex bg-dndoscuro-400/50 rounded-lg p-1 border border-white/5 w-full sm:w-auto">
           <button 
             onClick={() => handleCambiarFiltro('todos')} 
-            className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${filtroTipo === 'todos' ? 'bg-sangre-700 text-white shadow-neon' : 'text-stone-400 hover:text-stone-200'}`}
+            className={`flex-1 sm:flex-none px-2 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-bold transition-colors ${filtroTipo === 'todos' ? 'bg-sangre-700 text-white shadow-neon' : 'text-stone-400 hover:text-stone-200'}`}
           >
             Todos
           </button>
           <button 
             onClick={() => handleCambiarFiltro('monstruos')} 
-            className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${filtroTipo === 'monstruos' ? 'bg-sangre-700 text-white shadow-neon' : 'text-stone-400 hover:text-stone-200'}`}
+            className={`flex-1 sm:flex-none px-2 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-bold transition-colors ${filtroTipo === 'monstruos' ? 'bg-sangre-700 text-white shadow-neon' : 'text-stone-400 hover:text-stone-200'}`}
           >
             Monstruos
           </button>
           <button 
             onClick={() => handleCambiarFiltro('bestias')} 
-            className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${filtroTipo === 'bestias' ? 'bg-sangre-700 text-white shadow-neon' : 'text-stone-400 hover:text-stone-200'}`}
+            className={`flex-1 sm:flex-none px-2 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-bold transition-colors ${filtroTipo === 'bestias' ? 'bg-sangre-700 text-white shadow-neon' : 'text-stone-400 hover:text-stone-200'}`}
           >
             Animales
           </button>
         </div>
         
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:flex-none">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
             <input
               type="text"

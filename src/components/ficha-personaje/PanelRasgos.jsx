@@ -97,15 +97,15 @@ function SeccionRasgos({ titulo, lista, esNota, contenido, expandido, setExpandi
             <textarea
               className="w-full bg-dndoscuro-300 text-stone-200 p-2 rounded-md border border-white/10 overflow-hidden min-h-[100px] resize-none"
               value={contenido}
-              onChange={(e) => onGuardar(e.target.value)}
-              onInput={(e) => {
-                e.target.style.height = 'auto';
-                e.target.style.height = e.target.scrollHeight + 'px';
+              onChange={(e) => {
+                onGuardar(e.target.value);
+                e.target.style.height = '0px';
+                e.target.style.height = (e.target.scrollHeight + 2) + 'px';
               }}
               ref={(el) => {
                 if (el) {
-                  el.style.height = 'auto';
-                  el.style.height = el.scrollHeight + 'px';
+                  el.style.height = '0px';
+                  el.style.height = (el.scrollHeight + 2) + 'px';
                 }
               }}
               placeholder="Escribe tus notas aquí..."
@@ -128,15 +128,15 @@ function SeccionRasgos({ titulo, lista, esNota, contenido, expandido, setExpandi
               <textarea 
                 placeholder="Descripción..." 
                 value={nuevaDesc} 
-                onChange={e => setNuevaDesc(e.target.value)}
-                onInput={(e) => {
-                  e.target.style.height = 'auto';
-                  e.target.style.height = e.target.scrollHeight + 'px';
+                onChange={e => {
+                  setNuevaDesc(e.target.value);
+                  e.target.style.height = '0px';
+                  e.target.style.height = (e.target.scrollHeight + 2) + 'px';
                 }}
                 ref={(el) => {
                   if (el) {
-                    el.style.height = 'auto';
-                    el.style.height = el.scrollHeight + 'px';
+                    el.style.height = '0px';
+                    el.style.height = (el.scrollHeight + 2) + 'px';
                   }
                 }}
                 className="w-full bg-dndoscuro-300 text-stone-200 p-1 rounded border border-white/10 text-sm overflow-hidden min-h-[60px] resize-none" 

@@ -209,15 +209,15 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
           <div className="animate-fade-in relative z-10 w-full overflow-y-auto pr-2 pb-10">
             <textarea
               value={personaje.notas || ''}
-              onChange={(e) => handleActualizarCampo('notas', e.target.value)}
-              onInput={(e) => {
-                e.target.style.height = 'auto';
-                e.target.style.height = e.target.scrollHeight + 'px';
+              onChange={(e) => {
+                handleActualizarCampo('notas', e.target.value);
+                e.target.style.height = '0px';
+                e.target.style.height = (e.target.scrollHeight + 2) + 'px';
               }}
               ref={(el) => {
                 if (el) {
-                  el.style.height = 'auto';
-                  el.style.height = el.scrollHeight + 'px';
+                  el.style.height = '0px';
+                  el.style.height = (el.scrollHeight + 2) + 'px';
                 }
               }}
               placeholder="Apunta aquí tus misiones, pistas, nombres de PNJs y todo lo que necesites recordar..."
