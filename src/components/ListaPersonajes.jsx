@@ -1,4 +1,4 @@
-import { Plus, User, Shield, Swords, Trash2 } from 'lucide-react';
+import { Plus, User, Users, Shield, Swords, Trash2 } from 'lucide-react';
 
 export function ListaPersonajes({ personajes, alSeleccionar, alCrear, alEliminar, onUnirsePartida }) {
   return (
