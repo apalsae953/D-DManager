@@ -1,36 +1,85 @@
 import { useState } from 'react';
 import { supabase } from '../../supabaseClient';
+import { Eye, EyeOff } from 'lucide-react';
 
 export function Login({ onModoLocal }) {
+  const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
 
-  const handleLogin = async (e) => {
+  // Convertimos el usuario en un email falso para que Supabase lo acepte
+  const getFakeEmail = (user) => `${user.trim().toLowerCase().replace(/\s+/g, '')}@dndmanager.com`;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) setError(error.message);
-    setLoading(false);
-  };
+    setSuccessMsg(null);
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error) {
-      setError(error.message);
-    } else if (data.user && data.session === null) {
-      setError('Registro completado. Por favor, revisa tu correo para confirmar la cuenta (Si no quieres confirmar correos, desactiva "Confirm email" en Supabase).');
+    if (!username.trim()) {
+      setError("El nombre de usuario no puede estar vacío");
+      setLoading(false);
+      return;
+    }
+
+    const email = getFakeEmail(username);
+
+    if (isRegistering) {
+      if (password !== confirmPassword) {
+        setError("Las contraseñas no coinciden");
+        setLoading(false);
+        return;
+      }
+      if (password.length < 6) {
+        setError("La contraseña debe tener al menos 6 caracteres");
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: username
+          }
+        }
+      });
+
+      if (error) {
+        if (error.message.includes("already registered") || error.message.includes("User already exists")) {
+          setError("Ese nombre de usuario ya existe. Por favor, elige otro.");
+        } else {
+          setError("Error al registrar: " + error.message);
+        }
+      } else {
+        if (data.session) {
+          // Auto login exitoso
+        } else {
+          // Si auto login está desactivado o requiere confirmación (aunque los .local no pueden confirmar)
+          setSuccessMsg('¡Usuario creado correctamente! Ahora inicia sesión.');
+          setIsRegistering(false);
+          setPassword('');
+          setConfirmPassword('');
+        }
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          setError("Usuario o contraseña incorrectos");
+        } else {
+          setError("Error al iniciar sesión: " + error.message);
+        }
+      }
     }
     setLoading(false);
   };
@@ -49,57 +98,102 @@ export function Login({ onModoLocal }) {
     <div className="flex flex-col items-center justify-center min-h-[80vh]">
       <div className="w-full max-w-md p-8 bg-stone-900 border border-white/10 rounded-xl shadow-2xl">
         <h2 className="text-2xl font-cinzel font-bold text-sangre-500 mb-6 text-center">
-          Acceder a D&D Manager
+          {isRegistering ? 'Crear Nuevo Usuario' : 'Acceder a D&D Manager'}
         </h2>
         
         {error && (
-          <div className="mb-4 p-3 bg-red-900/50 border border-red-500/50 text-red-200 rounded text-sm">
+          <div className="mb-4 p-3 bg-red-900/50 border border-red-500/50 text-red-200 rounded text-sm text-center">
             {error}
           </div>
         )}
+        
+        {successMsg && (
+          <div className="mb-4 p-3 bg-emerald-900/50 border border-emerald-500/50 text-emerald-200 rounded text-sm text-center">
+            {successMsg}
+          </div>
+        )}
 
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-stone-400 mb-1">
-              Correo Electrónico
+              Nombre de Usuario
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full bg-stone-950 border border-white/10 rounded-lg px-4 py-2 text-stone-200 focus:outline-none focus:border-sangre-500 transition-colors"
-              placeholder="tu@email.com"
+              placeholder="Ej: Gandalf"
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-stone-400 mb-1">
               Contraseña
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-stone-950 border border-white/10 rounded-lg px-4 py-2 text-stone-200 focus:outline-none focus:border-sangre-500 transition-colors"
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-stone-950 border border-white/10 rounded-lg pl-4 pr-10 py-2 text-stone-200 focus:outline-none focus:border-sangre-500 transition-colors"
+                placeholder="••••••••"
+                required
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-2.5 text-stone-500 hover:text-stone-300 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
-          <div className="pt-4 flex gap-4">
+          {isRegistering && (
+            <div>
+              <label className="block text-sm font-medium text-stone-400 mb-1">
+                Repetir Contraseña
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-stone-950 border border-white/10 rounded-lg pl-4 pr-10 py-2 text-stone-200 focus:outline-none focus:border-sangre-500 transition-colors"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="pt-4">
             <button
-              onClick={handleLogin}
+              type="submit"
               disabled={loading}
-              className="flex-1 bg-sangre-600 hover:bg-sangre-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+              className="w-full bg-sangre-600 hover:bg-sangre-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
             >
-              {loading ? 'Cargando...' : 'Iniciar Sesión'}
+              {loading ? 'Cargando...' : (isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión')}
             </button>
+          </div>
+
+          <div className="text-center mt-4">
             <button
-              onClick={handleRegister}
-              disabled={loading}
-              className="flex-1 bg-stone-800 hover:bg-stone-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 border border-white/5"
+              type="button"
+              onClick={() => {
+                setIsRegistering(!isRegistering);
+                setError(null);
+                setSuccessMsg(null);
+                setPassword('');
+                setConfirmPassword('');
+              }}
+              className="text-stone-400 hover:text-white text-sm transition-colors"
             >
-              Registrarse
+              {isRegistering 
+                ? '¿Ya tienes un usuario? Inicia sesión' 
+                : '¿No tienes usuario? Regístrate aquí'}
             </button>
           </div>
 

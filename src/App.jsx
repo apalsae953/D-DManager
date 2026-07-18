@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient.js';
 import { Login } from './components/auth/Login.jsx';
 import { FichaPersonaje } from './components/ficha-personaje/FichaPersonaje.jsx';
@@ -24,6 +24,7 @@ export default function App() {
       return null;
     }
   });
+  
   const [personajes, setPersonajes] = useState(() => {
     try {
       const saved = localStorage.getItem('dnd_personajes');
@@ -63,6 +64,8 @@ export default function App() {
     }
   });
   const [personajeActivo, setPersonajeActivo] = useState(null);
+  const debounceTimer = useRef(null);
+  const [personajesPartida, setPersonajesPartida] = useState([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -79,6 +82,89 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Cargar personajes de Supabase al iniciar sesión y escuchar cambios (Para el Jugador)
+  useEffect(() => {
+    if (session) {
+      const fetchPersonajes = async () => {
+        const { data, error } = await supabase
+          .from('personajes')
+          .select('*')
+          .eq('jugador_id', session.user.id);
+        
+        if (data && !error) {
+          const loaded = data.map(dbChar => {
+            const def = crearPersonajePorDefecto();
+            return {
+              ...def,
+              ...(dbChar.datos_ficha || {}),
+              id: dbChar.id // Usamos el UUID real de la base de datos
+            };
+          });
+          setPersonajes(loaded.length > 0 ? loaded : []);
+        }
+      };
+      fetchPersonajes();
+
+      // Suscripción en tiempo real para reflejar cambios que haga el DM (ej. quitar PV)
+      const channel = supabase.channel('personajes_jugador')
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'personajes', 
+          filter: `jugador_id=eq.${session.user.id}` 
+        }, (payload) => {
+          const newData = payload.new;
+          setPersonajes(prev => prev.map(p => {
+            if (p.id === newData.id) {
+              const def = crearPersonajePorDefecto();
+              return { ...def, ...(newData.datos_ficha || {}), id: newData.id };
+            }
+            return p;
+          }));
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [session]);
+
+  // Cargar personajes de la partida para el DM
+  useEffect(() => {
+    if (session && vista === 'master' && partida) {
+      const fetchPersonajesPartida = async () => {
+        // En un futuro, si el jugador no le asigna partida_id, esto estará vacío
+        // pero por ahora buscamos personajes que estén en la partida
+        const { data, error } = await supabase
+          .from('personajes')
+          .select('*')
+          .eq('partida_id', partida.id);
+        
+        if (data && !error) {
+          const loaded = data.map(dbChar => {
+            const def = crearPersonajePorDefecto();
+            return { ...def, ...(dbChar.datos_ficha || {}), id: dbChar.id };
+          });
+          setPersonajesPartida(loaded);
+        }
+      };
+      fetchPersonajesPartida();
+
+      const channel = supabase.channel('personajes_master')
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'personajes', 
+          filter: `partida_id=eq.${partida.id}` 
+        }, fetchPersonajesPartida)
+        .subscribe();
+
+      return () => supabase.removeChannel(channel);
+    }
+  }, [session, vista, partida]);
+
+  // Guardar en localStorage como backup/modo local
   useEffect(() => {
     localStorage.setItem('dnd_personajes', JSON.stringify(personajes));
   }, [personajes]);
@@ -89,10 +175,27 @@ export default function App() {
   }, [partida]);
 
   const manejarGuardarPersonaje = useCallback((personajeEditado) => {
+    // Actualización local inmediata (Optimistic UI)
     setPersonajes(prev => prev.map(p => p.id === personajeEditado.id ? personajeEditado : p));
-  }, []);
+    
+    // Si estamos online, guardamos en Supabase con un debounce de 1 segundo
+    if (session) {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(async () => {
+        await supabase.from('personajes').update({
+          nombre: personajeEditado.nombre || 'Sin nombre',
+          raza: personajeEditado.raza,
+          clase: personajeEditado.clase,
+          nivel: personajeEditado.nivel || 1,
+          trasfondo: personajeEditado.trasfondo,
+          alineamiento: personajeEditado.alineamiento,
+          datos_ficha: personajeEditado
+        }).eq('id', personajeEditado.id);
+      }, 1000);
+    }
+  }, [session]);
 
-  const manejarCreacionPersonaje = useCallback((nuevoPersonaje) => {
+  const manejarCreacionPersonaje = useCallback(async (nuevoPersonaje) => {
     const def = crearPersonajePorDefecto();
     let nuevasCaracteristicas = def.caracteristicas;
     if (nuevoPersonaje.caracteristicas) {
@@ -119,20 +222,89 @@ export default function App() {
       dado_golpe_personalizado: nuevoPersonaje.dadoGolpe,
     };
 
-    setPersonajes(prev => [...prev, personajeCompleto]);
+    if (session) {
+      delete personajeCompleto.id; // Quitamos el ID falso local para que Supabase genere un UUID real
+      const { data, error } = await supabase.from('personajes').insert({
+        jugador_id: session.user.id,
+        partida_id: partida?.id || null,
+        nombre: personajeCompleto.nombre || 'Sin nombre',
+        raza: personajeCompleto.raza,
+        clase: personajeCompleto.clase,
+        nivel: personajeCompleto.nivel || 1,
+        trasfondo: personajeCompleto.trasfondo,
+        alineamiento: personajeCompleto.alineamiento,
+        datos_ficha: personajeCompleto
+      }).select().single();
+
+      if (data && !error) {
+        personajeCompleto.id = data.id;
+        // Guardamos el JSON actualizado con el nuevo ID real
+        await supabase.from('personajes').update({ datos_ficha: personajeCompleto }).eq('id', data.id);
+        setPersonajes(prev => [...prev, personajeCompleto]);
+      }
+    } else {
+      setPersonajes(prev => [...prev, personajeCompleto]);
+    }
+    
     setVista('listaPersonajes');
-  }, []);
+  }, [session]);
 
-  const manejarEliminarPersonaje = useCallback((id) => {
+  const manejarEliminarPersonaje = useCallback(async (id) => {
     setPersonajes(prev => prev.filter(p => p.id !== id));
-  }, []);
+    if (session) {
+      await supabase.from('personajes').delete().eq('id', id);
+    }
+  }, [session]);
 
-  const manejarCrearPartida = (nombre) => {
-    setPartida({ ...PARTIDA_DEMO, nombre });
+  const manejarCrearPartida = async (nombre) => {
+    if (!session) {
+      setPartida({ ...PARTIDA_DEMO, nombre });
+      return;
+    }
+    const { data, error } = await supabase.from('partidas').insert({
+      nombre,
+      master_id: session.user.id
+    }).select().single();
+    
+    if (data && !error) {
+      setPartida(data);
+    }
   };
 
-  const manejarUnirsePartida = (codigo) => {
-    setPartida(PARTIDA_DEMO);
+  const manejarUnirsePartida = async (codigo) => {
+    if (!session) {
+      alert("Debes iniciar sesión para unirte a partidas online.");
+      return;
+    }
+    
+    const { data: pData, error: pError } = await supabase
+      .from('partidas')
+      .select('*')
+      .eq('codigo_invitacion', codigo.toUpperCase())
+      .single();
+    
+    if (pData && !pError) {
+      if (pData.master_id !== session.user.id) {
+        // Intentar añadirlo como jugador
+        const { error: joinError } = await supabase.from('miembros_partida').insert({
+          partida_id: pData.id,
+          perfil_id: session.user.id,
+          rol: 'jugador'
+        });
+        
+        if (joinError && joinError.code === '23505') {
+          alert(`Ya eras miembro de la partida "${pData.nombre}".`);
+        } else if (!joinError) {
+          alert(`¡Te has unido con éxito a la partida "${pData.nombre}"!`);
+        } else {
+          alert("Ha ocurrido un error al unirse a la partida.");
+        }
+      } else {
+        alert("Eres el creador de esta partida. Puedes gestionarla desde el Panel de Master.");
+      }
+    } else {
+      alert("No se ha encontrado ninguna partida con ese código.");
+    }
   };
 
   if (loadingAuth) {
@@ -168,7 +340,10 @@ export default function App() {
         ) : (
           <>
             <div className="text-sm text-stone-400 mr-4">
-              {session?.user?.email}
+              {session?.user?.user_metadata?.display_name || 
+               session?.user?.user_metadata?.full_name || 
+               session?.user?.user_metadata?.name || 
+               session?.user?.email?.replace('@dndmanager.com', '')}
             </div>
             <button
               onClick={() => supabase.auth.signOut()}
@@ -182,11 +357,12 @@ export default function App() {
       </div>
 
       {vista === 'listaPersonajes' && (
-        <ListaPersonajes 
-          personajes={personajes} 
-          alSeleccionar={(p) => { setPersonajeActivo(p); setVista('ficha'); }} 
+        <ListaPersonajes
+          personajes={personajes}
+          alSeleccionar={(p) => { setPersonajeActivo(p); setVista('ficha'); }}
           alCrear={() => setVista('creadorPersonaje')}
           alEliminar={manejarEliminarPersonaje}
+          onUnirsePartida={manejarUnirsePartida}
         />
       )}
       
@@ -206,11 +382,12 @@ export default function App() {
       )}
 
       {vista === 'master' && (
-        <PanelMaster
+        <PanelMaster 
           partida={partida}
-          personajes={personajes}
+          personajes={personajesPartida}
           onCrearPartida={manejarCrearPartida}
           onUnirsePartida={manejarUnirsePartida}
+          onActualizarPersonaje={manejarGuardarPersonaje}
         />
       )}
     </div>

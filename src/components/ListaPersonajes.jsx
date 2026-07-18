@@ -1,16 +1,39 @@
 import { Plus, User, Shield, Swords, Trash2 } from 'lucide-react';
 
-export function ListaPersonajes({ personajes, alSeleccionar, alCrear, alEliminar }) {
+export function ListaPersonajes({ personajes, alSeleccionar, alCrear, alEliminar, onUnirsePartida }) {
   return (
     <div className="mx-auto max-w-4xl p-4 sm:p-6 animate-fade-in">
-      <header className="mb-8 flex items-center justify-between">
+      <header className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-cinzel font-bold text-sangre-100 drop-shadow-md">Mis Personajes</h1>
           <p className="text-stone-400 mt-1">Selecciona un héroe para continuar tu aventura o forja uno nuevo.</p>
         </div>
-        <button onClick={alCrear} className="btn-primary flex items-center gap-2">
-          <Plus className="w-5 h-5" /> Nuevo Personaje
-        </button>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2 bg-dndoscuro-400/50 p-1.5 rounded-lg border border-white/5">
+            <input
+              id="codigo-partida"
+              placeholder="CÓDIGO PARTIDA"
+              maxLength={6}
+              className="w-36 bg-transparent text-stone-200 text-sm font-mono uppercase tracking-widest px-2 py-1 outline-none placeholder:text-stone-600"
+            />
+            <button 
+              onClick={() => {
+                const input = document.getElementById('codigo-partida');
+                if (input.value.trim() && onUnirsePartida) {
+                  onUnirsePartida(input.value.trim());
+                  input.value = '';
+                }
+              }} 
+              className="bg-stone-700 hover:bg-stone-600 text-white p-1.5 rounded transition-colors"
+              title="Unirse a partida"
+            >
+              <Users className="w-4 h-4" />
+            </button>
+          </div>
+          <button onClick={alCrear} className="btn-primary flex items-center gap-2">
+            <Plus className="w-5 h-5" /> Nuevo Personaje
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

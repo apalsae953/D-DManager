@@ -36,57 +36,27 @@ export function GestorPartidas({ partidaActual, onCrearPartida, onUnirsePartida 
 
   return (
     <div className="rounded-xl border border-white/10 glass-panel p-5 animate-fade-in">
-      <div className="mb-4 flex gap-2">
-        <button
-          onClick={() => setModo('crear')}
-          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-            modo === 'crear' ? 'bg-sangre-700 text-white shadow-md' : 'bg-dndoscuro-400 text-stone-400 hover:text-stone-200'
-          }`}
-        >
-          <Shield className="h-4 w-4" /> Crear Partida
-        </button>
-        <button
-          onClick={() => setModo('unirse')}
-          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-            modo === 'unirse' ? 'bg-sangre-700 text-white shadow-md' : 'bg-dndoscuro-400 text-stone-400 hover:text-stone-200'
-          }`}
-        >
-          <Users className="h-4 w-4" /> Unirse a Partida
-        </button>
+      <div className="mb-4">
+        <h3 className="text-lg font-cinzel text-stone-300 flex items-center gap-2">
+          <Shield className="h-5 w-5 text-sangre-500" /> Crear Nueva Partida
+        </h3>
+        <p className="text-sm text-stone-400 mt-1">Como Dungeon Master, crea una sala para invitar a tus jugadores.</p>
       </div>
 
-      {modo === 'crear' ? (
-        <div className="flex gap-2">
-          <input
-            value={nombre}
-            onChange={(evento) => setNombre(evento.target.value)}
-            placeholder="Nombre de la partida"
-            className="flex-1 input-dnd py-2"
-          />
-          <button
-            onClick={() => nombre.trim() && onCrearPartida(nombre.trim())}
-            className="btn-primary px-6"
-          >
-            Crear
-          </button>
-        </div>
-      ) : (
-        <div className="flex gap-2">
-          <input
-            value={codigo}
-            onChange={(evento) => setCodigo(evento.target.value.toUpperCase())}
-            placeholder="CÓDIGO"
-            maxLength={6}
-            className="flex-1 input-dnd font-mono uppercase tracking-widest py-2"
-          />
-          <button
-            onClick={() => codigo.trim() && onUnirsePartida(codigo.trim())}
-            className="btn-primary px-6"
-          >
-            Unirse
-          </button>
-        </div>
-      )}
+      <div className="flex gap-2">
+        <input
+          value={nombre}
+          onChange={(evento) => setNombre(evento.target.value)}
+          placeholder="Nombre de la campaña..."
+          className="flex-1 input-dnd py-2"
+        />
+        <button
+          onClick={() => nombre.trim() && onCrearPartida(nombre.trim())}
+          className="btn-primary px-6"
+        >
+          Crear
+        </button>
+      </div>
     </div>
   );
 }
