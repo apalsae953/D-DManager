@@ -303,13 +303,15 @@ export default function App() {
         } else if (!joinError) {
           setPartida(pData);
         } else {
-          alert("Ha ocurrido un error al unirse a la partida.");
+          console.error(joinError);
+          alert("Ha ocurrido un error al unirse a la partida: " + joinError.message);
         }
       } else {
         alert("Eres el creador de esta partida. Puedes gestionarla desde el Panel de Master.");
       }
     } else {
-      alert("No se ha encontrado ninguna partida con ese código.");
+      console.error(pError);
+      alert("No se ha encontrado ninguna partida con ese código o no tienes permiso para verla: " + (pError?.message || ''));
     }
   };
 
