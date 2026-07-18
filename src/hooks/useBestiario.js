@@ -2,15 +2,14 @@ import { useCallback, useMemo, useState, useEffect } from 'react';
 import { MONSTRUOS_SRD } from '../datos/monstruosSRD.js';
 import { supabase } from '../supabaseClient.js';
 
-export function useBestiario() {
+export function useBestiario(session) {
   const [personalizados, setPersonalizados] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [userId, setUserId] = useState(null);
 
-  // Cargar de Supabase al montar
+  // Cargar de Supabase cuando haya sesión
   useEffect(() => {
     const cargarMonstruos = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         // Fallback a localStorage si no hay sesión
         try {
@@ -22,27 +21,24 @@ export function useBestiario() {
       
       setUserId(session.user.id);
 
-      // Cargar monstruos personalizados (los nuestros o los públicos/visibles si tuviéramos tabla)
-      // Como no hay tabla, leemos el campo "visible_para_jugadores" que guardaremos en Supabase
+      // Cargar monstruos personalizados
       const { data, error } = await supabase
         .from('monstruos')
         .select('*');
       
       if (data && !error) {
-        // Parsear JSONB
         const parseados = data.map(m => ({
           ...m,
-          // La DB devuelve los campos como objetos/json
           id: m.id,
           propietario_id: m.propietario_id,
-          visible: m.fuente === 'visible' // Hack temporal hasta que agreguemos la columna boolean
+          visible: m.fuente === 'visible'
         }));
         setPersonalizados(parseados);
       }
     };
     
     cargarMonstruos();
-  }, []);
+  }, [session]);
 
   const todos = useMemo(() => [...MONSTRUOS_SRD, ...personalizados], [personalizados]);
 

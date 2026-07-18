@@ -24,7 +24,7 @@ export default function App() {
     eliminarMonstruo: eliminarMonstruoGlobal,
     toggleVisibilidad: toggleVisibilidadGlobal,
     userId: currentUserId
-  } = useBestiario();
+  } = useBestiario(session);
 
   const [vista, setVista] = useState('listaPersonajes'); // listaPersonajes, creadorPersonaje, ficha, master
   const [partida, setPartida] = useState(() => {
@@ -524,6 +524,7 @@ export default function App() {
 
       {vista === 'master' && (
         <PanelMaster 
+          session={session}
           partida={partida}
           misPartidasMaster={misPartidasMaster}
           onSeleccionarPartida={(p) => setPartida(p)}

@@ -22,7 +22,7 @@ function tirarIniciativa(modificador) {
   return 1 + Math.floor(Math.random() * 20) + modificador;
 }
 
-export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida, onExpulsarPersonaje, onEliminarPartida, onGuardarNotas }) {
+export function PanelMaster({ session, partida, personajes, misPartidasMaster, onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida, onExpulsarPersonaje, onEliminarPartida, onGuardarNotas }) {
   const {
     resumenesPersonajes,
     participantes,
@@ -47,7 +47,7 @@ export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccio
     eliminarMonstruo,
     toggleVisibilidad,
     userId 
-  } = useBestiario();
+  } = useBestiario(session);
 
   const [pestaniaActiva, setPestaniaActiva] = useState('personajes');
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
