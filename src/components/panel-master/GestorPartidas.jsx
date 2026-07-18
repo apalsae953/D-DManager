@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Shield, Users, Copy, Check } from 'lucide-react';
+import { Shield, Users, Copy, Check, Trash2 } from 'lucide-react';
 
 // Antes de tener una partida activa, permite crearla (como master) o unirse
 // a una existente mediante su codigo de invitacion. Una vez hay partida,
 // muestra el codigo para compartir con los jugadores.
-export function GestorPartidas({ partidaActual, misPartidasMaster = [], onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida }) {
+export function GestorPartidas({ partidaActual, misPartidasMaster = [], onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida, onEliminarPartida }) {
   const [modo, setModo] = useState('crear'); // 'crear' o 'listar'
   const [nombre, setNombre] = useState('');
   const [copiado, setCopiado] = useState(false);
@@ -58,14 +58,28 @@ export function GestorPartidas({ partidaActual, misPartidasMaster = [], onSelecc
           
           <div className="grid gap-3 sm:grid-cols-2">
             {misPartidasMaster.map(p => (
-              <button
-                key={p.id}
-                onClick={() => onSeleccionarPartida(p)}
-                className="flex items-center justify-between p-4 rounded-lg bg-dndoscuro-400 hover:bg-dndoscuro-300 border border-white/5 transition-all hover:border-sangre-500/30 text-left"
-              >
-                <div className="font-cinzel text-stone-200">{p.nombre}</div>
-                <Users className="w-5 h-5 text-stone-500" />
-              </button>
+              <div key={p.id} className="flex items-center gap-2">
+                <button
+                  onClick={() => onSeleccionarPartida(p)}
+                  className="flex-1 flex items-center justify-between p-4 rounded-lg bg-dndoscuro-400 hover:bg-dndoscuro-300 border border-white/5 transition-all hover:border-sangre-500/30 text-left"
+                >
+                  <div className="font-cinzel text-stone-200">{p.nombre}</div>
+                  <Users className="w-5 h-5 text-stone-500" />
+                </button>
+                {onEliminarPartida && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`¿Seguro que quieres borrar la campaña "${p.nombre}" enterita? Esto expulsará a todos los jugadores.`)) {
+                        onEliminarPartida(p.id);
+                      }
+                    }}
+                    className="p-4 rounded-lg bg-dndoscuro-400 hover:bg-red-900/40 border border-white/5 hover:border-red-500/50 transition-all text-stone-500 hover:text-red-400"
+                    title="Borrar Partida"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </div>

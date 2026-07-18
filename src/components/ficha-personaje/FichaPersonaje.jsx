@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Sparkles, Swords, BookOpen, Dices, Save, Wand2, ChevronLeft, Shield, Package, AlignLeft, Check, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { User, Sparkles, Swords, BookOpen, Dices, Save, Wand2, ChevronLeft, Shield, Package, AlignLeft, Check, RefreshCw, CheckCircle2, Scroll } from 'lucide-react';
 import { useFichaPersonaje } from '../../hooks/useFichaPersonaje.js';
 import { PanelDatosGenerales } from './PanelDatosGenerales.jsx';
 import { SelectorCaracteristicas } from './SelectorCaracteristicas.jsx';
@@ -20,6 +20,7 @@ const PESTANIAS = [
   { clave: 'inventario', etiqueta: 'Inventario', Icono: Package },
   { clave: 'conjuros', etiqueta: 'Conjuros', Icono: BookOpen },
   { clave: 'rasgos', etiqueta: 'Rasgos', Icono: AlignLeft },
+  { clave: 'notas', etiqueta: 'Diario', Icono: Scroll },
 ];
 
 export function FichaPersonaje({ personajeInicial, onGuardar, onVolver }) {

@@ -16,7 +16,14 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [modoLocal, setModoLocal] = useState(false);
-  const { monstruos: monstruosGlobales, busqueda: busquedaBestiario, setBusqueda: setBusquedaBestiario } = useBestiario();
+  const { 
+    monstruos: monstruosGlobales, 
+    busqueda: busquedaBestiario, 
+    setBusqueda: setBusquedaBestiario,
+    crearMonstruo: crearMonstruoGlobal,
+    eliminarMonstruo: eliminarMonstruoGlobal,
+    toggleVisibilidad: toggleVisibilidadGlobal
+  } = useBestiario();
 
   const [vista, setVista] = useState('listaPersonajes'); // listaPersonajes, creadorPersonaje, ficha, master
   const [partida, setPartida] = useState(() => {
@@ -332,7 +339,32 @@ export default function App() {
     }
   };
 
-  const manejarUnirsePartida = async (codigo) => {
+  const manejarEliminarPartida = async (id) => {
+    if (!session) return;
+    const { error } = await supabase.from('partidas').delete().eq('id', id);
+    if (error) {
+      console.error("Error al eliminar partida:", error);
+      alert("Error al eliminar partida: " + error.message);
+    } else {
+      if (partida?.id === id) setPartida(null);
+      setMisPartidasMaster(prev => prev.filter(p => p.id !== id));
+    }
+  };
+
+  const manejarGuardarNotasPartida = async (notas) => {
+    if (!partida || !session) return;
+    
+    // Actualizar estado local inmediatamente para que el textarea sea reactivo
+    setPartida(prev => ({ ...prev, notas_master: notas }));
+    
+    // Guardar en Supabase (de forma asíncrona, asumiendo que no falla y sin bloquear UI)
+    const { error } = await supabase.from('partidas').update({ notas_master: notas }).eq('id', partida.id);
+    if (error) {
+      console.error("Error al guardar notas:", error);
+    }
+  };
+
+  const manejarUnirsePartida = async (personajeId, codigo) => {
     if (!session) {
       alert("Debes iniciar sesión para unirte a partidas online.");
       return;
@@ -353,14 +385,15 @@ export default function App() {
         });
         
         if (joinError && joinError.code === '23505') {
-          // Ya era miembro
-          alert("Ya eres miembro de esta partida.");
+          // Ya era miembro, solo asignamos el personaje
+          manejarAsignacionPartida(personajeId, pData.id);
+          alert(`Ya eras miembro. ${personajeId ? "Personaje vinculado" : ""} a la campaña: ${pData.nombre}!`);
         } else if (!joinError) {
           setMisPartidasJugador(prev => {
-            // Evitar duplicados
             if (prev.find(p => p.id === pData.id)) return prev;
             return [...prev, pData];
           });
+          manejarAsignacionPartida(personajeId, pData.id);
           alert(`¡Te has unido con éxito a la campaña: ${pData.nombre}!`);
         } else {
           console.error(joinError);
@@ -497,6 +530,8 @@ export default function App() {
           onActualizarPersonaje={manejarGuardarPersonaje}
           onExpulsarPersonaje={(id) => manejarAsignacionPartida(id, null)}
           onSalirPartida={() => setPartida(null)}
+          onEliminarPartida={manejarEliminarPartida}
+          onGuardarNotas={manejarGuardarNotasPartida}
         />
       )}
 
@@ -509,6 +544,9 @@ export default function App() {
             busqueda={busquedaBestiario} 
             setBusqueda={setBusquedaBestiario} 
             modoGlobal={true}
+            onCrearMonstruo={crearMonstruoGlobal}
+            toggleVisibilidad={toggleVisibilidadGlobal}
+            onEliminarMonstruo={eliminarMonstruoGlobal}
           />
         </div>
       )}

@@ -1,6 +1,10 @@
-import { Plus, User, Users, Shield, Swords, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, User, Shield, Swords, Trash2, Link } from 'lucide-react';
+import { ModalVincularPartida } from './ModalVincularPartida.jsx';
 
 export function ListaPersonajes({ personajes, misPartidasJugador = [], alSeleccionar, alCrear, alEliminar, onUnirsePartida, onAsignarPartida }) {
+  const [personajeAVincular, setPersonajeAVincular] = useState(null);
+
   return (
     <div className="mx-auto max-w-4xl p-4 sm:p-6 animate-fade-in">
       <header className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -9,29 +13,6 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
           <p className="text-stone-400 mt-1">Selecciona un héroe para continuar tu aventura o forja uno nuevo.</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          
-          <div className="flex items-center gap-2 bg-dndoscuro-400/50 p-1.5 rounded-lg border border-white/5">
-            <input
-              id="codigo-partida"
-              placeholder="CÓDIGO PARTIDA"
-              maxLength={6}
-              className="w-36 bg-transparent text-stone-200 text-sm font-mono uppercase tracking-widest px-2 py-1 outline-none placeholder:text-stone-600"
-            />
-            <button 
-              onClick={() => {
-                const input = document.getElementById('codigo-partida');
-                if (input.value.trim() && onUnirsePartida) {
-                  onUnirsePartida(input.value.trim());
-                  input.value = '';
-                }
-              }} 
-              className="bg-stone-700 hover:bg-stone-600 text-white p-1.5 rounded transition-colors"
-              title="Unirse a partida"
-            >
-              <Users className="w-4 h-4" />
-            </button>
-          </div>
-
           <button onClick={alCrear} className="btn-primary flex items-center gap-2">
             <Plus className="w-5 h-5" /> Nuevo Personaje
           </button>
@@ -74,24 +55,16 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
                         <Shield className="w-3 h-3" />
                         {partidaDelPersonaje.nombre}
                       </p>
-                    ) : (misPartidasJugador && misPartidasJugador.length > 0) ? (
-                      <div className="mt-1" onClick={e => e.stopPropagation()}>
-                        <select 
-                          className="bg-dndoscuro-900/80 text-xs text-stone-300 border border-white/10 rounded px-1 py-0.5 outline-none w-full max-w-[150px]"
-                          onChange={(e) => {
-                            if (e.target.value && onAsignarPartida) {
-                              onAsignarPartida(p.id, e.target.value);
-                            }
-                          }}
-                          value=""
+                    ) : (
+                      <div className="mt-2" onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={() => setPersonajeAVincular(p)}
+                          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-stone-300 bg-dndoscuro-900/80 hover:bg-sangre-700/80 hover:text-white px-2.5 py-1.5 rounded-md border border-white/10 transition-colors w-fit"
                         >
-                          <option value="" disabled>Vincular a partida...</option>
-                          {misPartidasJugador.map(game => (
-                            <option key={game.id} value={game.id}>{game.nombre}</option>
-                          ))}
-                        </select>
+                          <Link className="w-3 h-3" /> Unir a Partida
+                        </button>
                       </div>
-                    ) : null}
+                    )}
                   </div>
                   {alEliminar && (
                     <button 
@@ -119,6 +92,14 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
           })
         )}
       </div>
+
+      <ModalVincularPartida
+        personaje={personajeAVincular}
+        misPartidasJugador={misPartidasJugador}
+        onClose={() => setPersonajeAVincular(null)}
+        onVincular={onAsignarPartida}
+        onUnirse={onUnirsePartida}
+      />
     </div>
   );
 }

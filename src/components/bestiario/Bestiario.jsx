@@ -69,7 +69,7 @@ export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, o
               className="w-full sm:w-64 rounded-md border border-white/10 bg-dndoscuro-900/80 pl-9 pr-4 py-1.5 text-sm text-stone-200 placeholder-stone-500 focus:border-sangre-500 focus:outline-none focus:ring-1 focus:ring-sangre-500 transition-all"
             />
           </div>
-          {!modoGlobal && onCrearMonstruo && (
+          {onCrearMonstruo && (
             <button
               onClick={() => setModalAbierto(true)}
               className="flex items-center justify-center gap-2 rounded-md bg-sangre-700 px-4 py-1.5 text-sm font-bold text-white transition-all hover:bg-sangre-600 hover:shadow-neon w-full sm:w-auto"

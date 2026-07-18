@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Swords, Skull, Calculator } from 'lucide-react';
+import { Users, Swords, Skull, Calculator, Scroll } from 'lucide-react';
 import { usePanelMaster } from '../../hooks/usePanelMaster.js';
 import { useBestiario } from '../../hooks/useBestiario.js';
 import { modificadorCaracteristica } from '../../motor/index.js';
@@ -15,13 +15,14 @@ const PESTANIAS = [
   { clave: 'combate', etiqueta: 'Tracker de Iniciativa', Icono: Swords },
   { clave: 'bestiario', etiqueta: 'Bestiario', Icono: Skull },
   { clave: 'calculadora', etiqueta: 'Dificultad de Encuentros', Icono: Calculator },
+  { clave: 'notas', etiqueta: 'Notas de Campaña', Icono: Scroll },
 ];
 
 function tirarIniciativa(modificador) {
   return 1 + Math.floor(Math.random() * 20) + modificador;
 }
 
-export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida, onExpulsarPersonaje }) {
+export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida, onExpulsarPersonaje, onEliminarPartida, onGuardarNotas }) {
   const {
     resumenesPersonajes,
     participantes,
@@ -66,6 +67,7 @@ export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccio
         onCrearPartida={onCrearPartida} 
         onUnirsePartida={onUnirsePartida} 
         onSalirPartida={onSalirPartida} 
+        onEliminarPartida={onEliminarPartida}
       />
 
       {partida && (
@@ -115,7 +117,23 @@ export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccio
                 onAgregarAIniciativa={agregarMonstruoAIniciativa}
               />
             )}
-            {pestaniaActiva === 'calculadora' && <CalculadoraEncuentros monstruosDisponibles={todosLosMonstruos} />}
+            {pestaniaActiva === 'calculadora' && (
+              <CalculadoraEncuentros monstruosDisponibles={todosLosMonstruos} />
+            )}
+            {pestaniaActiva === 'notas' && (
+              <div className="h-full flex flex-col p-4 animate-fade-in">
+                <h3 className="text-xl font-cinzel text-stone-200 mb-4 flex items-center gap-2">
+                  <Scroll className="w-6 h-6 text-sangre-500" /> Notas de la Campaña
+                </h3>
+                <textarea
+                  value={partida.notas_master || ''}
+                  onChange={(e) => onGuardarNotas?.(e.target.value)}
+                  placeholder="Apunta aquí la trama, nombres de NPCs, secretos o recordatorios para la próxima sesión..."
+                  className="flex-1 w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors"
+                  style={{ minHeight: '400px' }}
+                />
+              </div>
+            )}
           </main>
 
           <ModalAgregarParticipante
