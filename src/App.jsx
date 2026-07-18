@@ -66,6 +66,8 @@ export default function App() {
   const [personajeActivo, setPersonajeActivo] = useState(null);
   const debounceTimer = useRef(null);
   const [personajesPartida, setPersonajesPartida] = useState([]);
+  const [misPartidasMaster, setMisPartidasMaster] = useState([]);
+  const [misPartidasJugador, setMisPartidasJugador] = useState([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -81,6 +83,35 @@ export default function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Cargar lista de partidas del usuario
+  useEffect(() => {
+    if (session) {
+      const fetchPartidas = async () => {
+        // Partidas como Master
+        const { data: dMaster } = await supabase
+          .from('partidas')
+          .select('*')
+          .eq('master_id', session.user.id);
+        if (dMaster) setMisPartidasMaster(dMaster);
+
+        // Partidas como Jugador
+        const { data: dJugador } = await supabase
+          .from('miembros_partida')
+          .select('partidas(*)')
+          .eq('usuario_id', session.user.id);
+        if (dJugador) {
+          // Flatten the response
+          const partidasJ = dJugador.map(m => m.partidas).filter(p => p !== null);
+          setMisPartidasJugador(partidasJ);
+        }
+      };
+      fetchPartidas();
+    } else {
+      setMisPartidasMaster([]);
+      setMisPartidasJugador([]);
+    }
+  }, [session]);
 
   // Cargar personajes de Supabase al iniciar sesión y escuchar cambios (Para el Jugador)
   useEffect(() => {
@@ -226,7 +257,7 @@ export default function App() {
       delete personajeCompleto.id; // Quitamos el ID falso local para que Supabase genere un UUID real
       const { data, error } = await supabase.from('personajes').insert({
         usuario_id: session.user.id,
-        partida_id: partida?.id || null,
+        partida_id: personajeCompleto.partida_id || null,
         nombre: personajeCompleto.nombre || 'Sin nombre',
         raza: personajeCompleto.raza,
         clase: personajeCompleto.clase,
@@ -368,6 +399,7 @@ export default function App() {
         <ListaPersonajes
           personajes={personajes}
           partida={partida}
+          misPartidasJugador={misPartidasJugador}
           alSeleccionar={(p) => { setPersonajeActivo(p); setVista('ficha'); }}
           alCrear={() => setVista('creadorPersonaje')}
           alEliminar={manejarEliminarPersonaje}
@@ -378,6 +410,8 @@ export default function App() {
       
       {vista === 'creadorPersonaje' && (
         <CreadorPersonaje 
+          misPartidasJugador={misPartidasJugador}
+          partidaActual={partida}
           alGuardar={manejarCreacionPersonaje} 
           alCancelar={() => setVista('listaPersonajes')} 
         />
@@ -394,6 +428,8 @@ export default function App() {
       {vista === 'master' && (
         <PanelMaster 
           partida={partida}
+          misPartidasMaster={misPartidasMaster}
+          onSeleccionarPartida={(p) => setPartida(p)}
           personajes={personajesPartida}
           onCrearPartida={manejarCrearPartida}
           onUnirsePartida={manejarUnirsePartida}

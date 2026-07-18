@@ -26,7 +26,7 @@ function DicesIcon(props) {
   );
 }
 
-export function CreadorPersonaje({ alGuardar, alCancelar }) {
+export function CreadorPersonaje({ alGuardar, alCancelar, misPartidasJugador = [], partidaActual = null }) {
   const {
     razas, clases, trasfondos, esTrasfondoPersonalizado,
     crearRaza, editarRaza, eliminarRaza,
@@ -38,6 +38,7 @@ export function CreadorPersonaje({ alGuardar, alCancelar }) {
   const [datos, setDatos] = useState({
     nombre: '',
     avatar: '',
+    partida_id: partidaActual?.id || '',
     alineamiento: 'Neutral Bueno',
     raza: 'Humano',
     subraza: '',
@@ -130,7 +131,7 @@ export function CreadorPersonaje({ alGuardar, alCancelar }) {
       </header>
 
       <main className="flex-1 overflow-y-auto glass-panel p-6 sm:p-8 relative">
-        {pasoActual === 0 && <PasoIdentidad datos={datos} setDatos={setDatos} />}
+        {pasoActual === 0 && <PasoIdentidad datos={datos} setDatos={setDatos} misPartidasJugador={misPartidasJugador} />}
         {pasoActual === 1 && (
           <PasoRaza
             datos={datos} setDatos={setDatos} razas={razas}
@@ -170,7 +171,7 @@ export function CreadorPersonaje({ alGuardar, alCancelar }) {
   );
 }
 
-function PasoIdentidad({ datos, setDatos }) {
+function PasoIdentidad({ datos, setDatos, misPartidasJugador = [] }) {
   const handlePhoto = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -196,6 +197,23 @@ function PasoIdentidad({ datos, setDatos }) {
               className="input-dnd text-lg"
             />
           </div>
+
+          {misPartidasJugador.length > 0 && (
+            <div>
+              <label className="block text-stone-300 font-cinzel mb-2">Asignar a Partida (Opcional)</label>
+              <select
+                value={datos.partida_id || ''}
+                onChange={e => setDatos({...datos, partida_id: e.target.value})}
+                className="input-dnd"
+              >
+                <option value="">-- Sin asignar --</option>
+                {misPartidasJugador.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
             <label className="block text-stone-300 font-cinzel mb-2">Alineamiento</label>
             <select 

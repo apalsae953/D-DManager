@@ -4,10 +4,9 @@ import { Shield, Users, Copy, Check } from 'lucide-react';
 // Antes de tener una partida activa, permite crearla (como master) o unirse
 // a una existente mediante su codigo de invitacion. Una vez hay partida,
 // muestra el codigo para compartir con los jugadores.
-export function GestorPartidas({ partidaActual, onCrearPartida, onUnirsePartida, onSalirPartida }) {
-  const [modo, setModo] = useState('crear');
+export function GestorPartidas({ partidaActual, misPartidasMaster = [], onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida }) {
+  const [modo, setModo] = useState('crear'); // 'crear' o 'listar'
   const [nombre, setNombre] = useState('');
-  const [codigo, setCodigo] = useState('');
   const [copiado, setCopiado] = useState(false);
 
   const copiarCodigo = async () => {
@@ -45,27 +44,56 @@ export function GestorPartidas({ partidaActual, onCrearPartida, onUnirsePartida,
   }
 
   return (
-    <div className="rounded-xl border border-white/10 glass-panel p-5 animate-fade-in">
-      <div className="mb-4">
-        <h3 className="text-lg font-cinzel text-stone-300 flex items-center gap-2">
-          <Shield className="h-5 w-5 text-sangre-500" /> Crear Nueva Partida
-        </h3>
-        <p className="text-sm text-stone-400 mt-1">Como Dungeon Master, crea una sala para invitar a tus jugadores.</p>
-      </div>
+    <div className="rounded-xl border border-white/10 glass-panel p-5 animate-fade-in space-y-6">
+      
+      {/* Lista de Partidas Creadas */}
+      {misPartidasMaster.length > 0 && (
+        <div>
+          <div className="mb-4">
+            <h3 className="text-lg font-cinzel text-stone-300 flex items-center gap-2">
+              <Shield className="h-5 w-5 text-sangre-500" /> Mis Campañas
+            </h3>
+            <p className="text-sm text-stone-400 mt-1">Selecciona una campaña para administrarla.</p>
+          </div>
+          
+          <div className="grid gap-3 sm:grid-cols-2">
+            {misPartidasMaster.map(p => (
+              <button
+                key={p.id}
+                onClick={() => onSeleccionarPartida(p)}
+                className="flex items-center justify-between p-4 rounded-lg bg-dndoscuro-400 hover:bg-dndoscuro-300 border border-white/5 transition-all hover:border-sangre-500/30 text-left"
+              >
+                <div className="font-cinzel text-stone-200">{p.nombre}</div>
+                <Users className="w-5 h-5 text-stone-500" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-      <div className="flex gap-2">
-        <input
-          value={nombre}
-          onChange={(evento) => setNombre(evento.target.value)}
-          placeholder="Nombre de la campaña..."
-          className="flex-1 input-dnd py-2"
-        />
-        <button
-          onClick={() => nombre.trim() && onCrearPartida(nombre.trim())}
-          className="btn-primary px-6"
-        >
-          Crear
-        </button>
+      {/* Crear Nueva Partida */}
+      <div className={misPartidasMaster.length > 0 ? "pt-6 border-t border-white/5" : ""}>
+        <div className="mb-4">
+          <h3 className="text-lg font-cinzel text-stone-300 flex items-center gap-2">
+            <Shield className="h-5 w-5 text-sangre-500" /> Crear Nueva Partida
+          </h3>
+          <p className="text-sm text-stone-400 mt-1">Como Dungeon Master, crea una sala para invitar a tus jugadores.</p>
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            value={nombre}
+            onChange={(evento) => setNombre(evento.target.value)}
+            placeholder="Nombre de la campaña..."
+            className="flex-1 input-dnd py-2"
+          />
+          <button
+            onClick={() => nombre.trim() && onCrearPartida(nombre.trim())}
+            className="btn-primary px-6"
+          >
+            Crear
+          </button>
+        </div>
       </div>
     </div>
   );
