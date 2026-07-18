@@ -80,9 +80,9 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
   };
 
   return (
-    <div className={`mx-auto max-w-5xl p-4 sm:p-6 animate-fade-in h-full flex flex-col ${modoLectura ? 'pointer-events-none' : ''}`}>
+    <div className="mx-auto max-w-5xl p-4 sm:p-6 animate-fade-in h-full flex flex-col">
       {/* Permitimos clics en la cabecera para poder volver y cambiar pestañas */}
-      <header className="pointer-events-auto mb-6 flex flex-wrap items-center justify-between gap-4 animate-fade-in px-2">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-4 animate-fade-in px-2">
         <div className="flex items-center gap-4">
           <button 
             onClick={onVolver}
@@ -96,66 +96,75 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
             ) : (
               <div className="w-full h-full bg-dndoscuro-300 flex items-center justify-center"><User className="text-stone-500" /></div>
             )}
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <span className="text-[10px] text-white font-bold">Cambiar</span>
-            </div>
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = (ev) => actualizarCampo('avatar', ev.target.result);
-                  reader.readAsDataURL(file);
-                }
-              }} 
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-            />
+            {!modoLectura && (
+              <>
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <span className="text-[10px] text-white font-bold">Cambiar</span>
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => actualizarCampo('avatar', ev.target.result);
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                />
+              </>
+            )}
           </div>
           <div>
-            <h1 className="text-3xl font-cinzel font-bold text-sangre-100 drop-shadow-md">{personaje.nombre || 'Héroe Anónimo'}</h1>
+            <h1 className="text-3xl font-cinzel font-bold text-sangre-100 drop-shadow-md flex items-center gap-3">
+              {personaje.nombre || 'Héroe Anónimo'}
+              {modoLectura && <span className="text-xs bg-indigo-900/50 text-indigo-300 px-2 py-1 rounded font-sans uppercase tracking-widest border border-indigo-500/30">Modo DM</span>}
+            </h1>
             <p className="text-sm font-serif text-stone-300">
               Nivel {personaje.nivel} · {personaje.raza || 'Raza'} · {personaje.clase || 'Clase'}
             </p>
           </div>
         </div>
-        <div className="flex gap-3 items-center">
-          <div className={`flex items-center gap-1 text-xs font-bold transition-opacity ${estadoGuardado === 'guardando' ? 'text-stone-400' : 'text-emerald-500'}`}>
-            {estadoGuardado === 'guardando' ? (
-              <span className="flex items-center gap-2 text-sangre-400">
-                <RefreshCw className="h-4 w-4 animate-spin" /> Guardando...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2 text-emerald-500">
-                <CheckCircle2 className="h-4 w-4" /> Guardado
-              </span>
-            )}
-            
-            <div className="flex flex-col items-end">
-              <button
-                onClick={() => setModalDadosAbierto(true)}
-                className="flex items-center gap-2 rounded-lg border border-white/10 bg-dndoscuro-400/50 px-4 py-2 font-cinzel text-sm font-bold text-stone-200 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                <Dices className="h-5 w-5" />
-                Dados
-              </button>
+        {!modoLectura && (
+          <div className="flex gap-3 items-center">
+            <div className={`flex items-center gap-1 text-xs font-bold transition-opacity ${estadoGuardado === 'guardando' ? 'text-stone-400' : 'text-emerald-500'}`}>
+              {estadoGuardado === 'guardando' ? (
+                <span className="flex items-center gap-2 text-sangre-400">
+                  <RefreshCw className="h-4 w-4 animate-spin" /> Guardando...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 text-emerald-500">
+                  <CheckCircle2 className="h-4 w-4" /> Guardado
+                </span>
+              )}
               
-              <MiniBarraXP 
-                personaje={personaje} 
-                actualizarCampo={actualizarCampo} 
-                subirNivel={subirNivel} 
-                modoSubida={modoSubida}
-                setEntradaNivel={setEntradaNivel}
-                soloLectura={false} 
-              />
+              <div className="flex flex-col items-end">
+                <button
+                  onClick={() => setModalDadosAbierto(true)}
+                  className="flex items-center gap-2 rounded-lg border border-white/10 bg-dndoscuro-400/50 px-4 py-2 font-cinzel text-sm font-bold text-stone-200 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <Dices className="h-5 w-5" />
+                  Dados
+                </button>
+                
+                <MiniBarraXP 
+                  personaje={personaje} 
+                  actualizarCampo={handleActualizarCampo} 
+                  subirNivel={handleSubirNivel} 
+                  modoSubida={modoSubida}
+                  setEntradaNivel={setEntradaNivel}
+                  soloLectura={modoLectura} 
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
       <nav className="mb-6 flex gap-2 overflow-x-auto glass-panel p-2">
-        {PESTANIAS.map(({ clave, etiqueta, Icono }) => (
+        {pestaniasVisibles.map(({ clave, etiqueta, Icono }) => (
           <button
             key={clave}
             onClick={() => setPestaniaActiva(clave)}
@@ -168,7 +177,7 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
         ))}
       </nav>
 
-      <main className="glass-panel p-6 shadow-inner relative overflow-hidden min-h-[500px]">
+      <main className={`glass-panel p-6 shadow-inner relative overflow-hidden min-h-[500px] ${modoLectura ? 'pointer-events-none' : ''}`}>
         {pestaniaActiva === 'combate' && (
           <div className="animate-fade-in relative z-10 flex flex-col gap-6">
             <PanelDatosGenerales personaje={personaje} actualizarCampo={handleActualizarCampo} soloLectura={modoLectura} />

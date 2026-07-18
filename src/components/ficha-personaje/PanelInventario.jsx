@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package, Search, Plus, Trash2, Shield, Sword, Minus, X, PlusCircle } from 'lucide-react';
+import { Package, Search, Plus, Trash2, Shield, Sword, Minus, X, PlusCircle, GripVertical } from 'lucide-react';
 import { EQUIPO } from '../../datos/equipo.js';
 
 const TIPOS_OBJETO = ['Arma', 'Armadura', 'Munición', 'Equipo', 'Herramienta', 'Paquete', 'Montura', 'Vehículo', 'Otro'];
@@ -39,6 +39,14 @@ export function PanelInventario({ personaje, actualizarCampo }) {
     actualizarCampo('equipo', nuevoEquipo);
   };
 
+  const moverObjeto = (fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return;
+    const nuevoEquipo = [...equipoActual];
+    const [movedItem] = nuevoEquipo.splice(fromIndex, 1);
+    nuevoEquipo.splice(toIndex, 0, movedItem);
+    actualizarCampo('equipo', nuevoEquipo);
+  };
+
   const IconoPorTipo = (tipo) => {
     if (!tipo) return <Package className="w-4 h-4 text-stone-500" />;
     const t = tipo.toLowerCase();
@@ -75,12 +83,14 @@ export function PanelInventario({ personaje, actualizarCampo }) {
           <p className="text-stone-500 text-sm italic p-4 text-center border border-dashed border-white/10 rounded-lg">Tu inventario está vacío. Busca objetos en el manual o crea los tuyos propios.</p>
         ) : (
           <div className="space-y-1 max-h-[500px] overflow-y-auto pr-2 divide-y divide-white/5 bg-dndoscuro-400/30 rounded-lg border border-white/5">
-            {equipoActual.map(item => (
+            {equipoActual.map((item, index) => (
               <ObjetoItem 
                 key={item.id_instancia} 
                 item={item} 
+                index={index}
                 accion={{ tipo: 'eliminar', handler: () => eliminarObjeto(item.id_instancia) }} 
                 onActualizar={(campos) => actualizarItem(item.id_instancia, campos)}
+                onMover={moverObjeto}
                 IconoPorTipo={IconoPorTipo} 
               />
             ))}
@@ -200,14 +210,50 @@ export function PanelInventario({ personaje, actualizarCampo }) {
   );
 }
 
-function ObjetoItem({ item, accion, IconoPorTipo, esBuscador, onActualizar }) {
+function ObjetoItem({ item, index, accion, IconoPorTipo, esBuscador, onActualizar, onMover }) {
   const [expandido, setExpandido] = useState(false);
   
   const esArmaOArmadura = item.tipo && (item.tipo.toLowerCase().includes('arma') || item.tipo.toLowerCase().includes('armadura') || item.tipo.toLowerCase().includes('escudo'));
 
   return (
-    <div className={`p-2 group hover:bg-white/5 transition-colors flex justify-between items-start ${esBuscador ? 'cursor-pointer border border-white/5 rounded-lg mb-1 bg-dndoscuro-400/50' : ''}`} onClick={() => esBuscador && setExpandido(!expandido)}>
+    <div 
+      className={`p-2 group transition-colors flex justify-between items-start ${esBuscador ? 'cursor-pointer border border-white/5 rounded-lg mb-1 bg-dndoscuro-400/50 hover:bg-white/5' : 'bg-dndoscuro-400/10 hover:bg-white/5 cursor-grab active:cursor-grabbing border-b border-white/5 last:border-0'}`} 
+      onClick={() => esBuscador && setExpandido(!expandido)}
+      draggable={!esBuscador}
+      onDragStart={(e) => {
+        if (!esBuscador) {
+          e.dataTransfer.setData('text/plain', index);
+          e.dataTransfer.effectAllowed = 'move';
+          // Opcional: estilo al arrastrar
+          e.currentTarget.style.opacity = '0.5';
+        }
+      }}
+      onDragEnd={(e) => {
+        if (!esBuscador) e.currentTarget.style.opacity = '1';
+      }}
+      onDragOver={(e) => {
+        if (!esBuscador) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+      }}
+      onDrop={(e) => {
+        if (!esBuscador) {
+          e.preventDefault();
+          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+          if (!isNaN(fromIndex) && onMover) {
+            onMover(fromIndex, index);
+          }
+        }
+      }}
+    >
       
+      {!esBuscador && (
+        <div className="mt-1 mr-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-stone-500 hover:text-stone-300">
+          <GripVertical className="w-4 h-4" />
+        </div>
+      )}
+
       {!esBuscador && esArmaOArmadura && (
         <button 
           onClick={(e) => { e.stopPropagation(); onActualizar({ equipado: !item.equipado }); }}
