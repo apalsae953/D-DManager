@@ -1,6 +1,6 @@
 import { Plus, User, Users, Shield, Swords, Trash2 } from 'lucide-react';
 
-export function ListaPersonajes({ personajes, alSeleccionar, alCrear, alEliminar, onUnirsePartida }) {
+export function ListaPersonajes({ personajes, partida, alSeleccionar, alCrear, alEliminar, onUnirsePartida, onSalirPartida }) {
   return (
     <div className="mx-auto max-w-4xl p-4 sm:p-6 animate-fade-in">
       <header className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -9,27 +9,42 @@ export function ListaPersonajes({ personajes, alSeleccionar, alCrear, alEliminar
           <p className="text-stone-400 mt-1">Selecciona un héroe para continuar tu aventura o forja uno nuevo.</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2 bg-dndoscuro-400/50 p-1.5 rounded-lg border border-white/5">
-            <input
-              id="codigo-partida"
-              placeholder="CÓDIGO PARTIDA"
-              maxLength={6}
-              className="w-36 bg-transparent text-stone-200 text-sm font-mono uppercase tracking-widest px-2 py-1 outline-none placeholder:text-stone-600"
-            />
-            <button 
-              onClick={() => {
-                const input = document.getElementById('codigo-partida');
-                if (input.value.trim() && onUnirsePartida) {
-                  onUnirsePartida(input.value.trim());
-                  input.value = '';
-                }
-              }} 
-              className="bg-stone-700 hover:bg-stone-600 text-white p-1.5 rounded transition-colors"
-              title="Unirse a partida"
-            >
-              <Users className="w-4 h-4" />
-            </button>
-          </div>
+          
+          {partida ? (
+            <div className="flex items-center gap-3 bg-dndoscuro-400/50 px-3 py-1.5 rounded-lg border border-sangre-500/30">
+              <span className="text-sm font-cinzel text-stone-200">En partida: <strong className="text-sangre-400">{partida.nombre}</strong></span>
+              <button 
+                onClick={onSalirPartida}
+                className="bg-stone-700 hover:bg-red-600 text-white px-2 py-1 text-xs rounded transition-colors"
+                title="Salir de la partida"
+              >
+                Salir
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-dndoscuro-400/50 p-1.5 rounded-lg border border-white/5">
+              <input
+                id="codigo-partida"
+                placeholder="CÓDIGO PARTIDA"
+                maxLength={6}
+                className="w-36 bg-transparent text-stone-200 text-sm font-mono uppercase tracking-widest px-2 py-1 outline-none placeholder:text-stone-600"
+              />
+              <button 
+                onClick={() => {
+                  const input = document.getElementById('codigo-partida');
+                  if (input.value.trim() && onUnirsePartida) {
+                    onUnirsePartida(input.value.trim());
+                    input.value = '';
+                  }
+                }} 
+                className="bg-stone-700 hover:bg-stone-600 text-white p-1.5 rounded transition-colors"
+                title="Unirse a partida"
+              >
+                <Users className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           <button onClick={alCrear} className="btn-primary flex items-center gap-2">
             <Plus className="w-5 h-5" /> Nuevo Personaje
           </button>

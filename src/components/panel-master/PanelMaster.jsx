@@ -21,7 +21,7 @@ function tirarIniciativa(modificador) {
   return 1 + Math.floor(Math.random() * 20) + modificador;
 }
 
-export function PanelMaster({ partida, personajes, onCrearPartida, onUnirsePartida }) {
+export function PanelMaster({ partida, personajes, onCrearPartida, onUnirsePartida, onSalirPartida }) {
   const {
     resumenesPersonajes,
     participantes,
@@ -59,7 +59,12 @@ export function PanelMaster({ partida, personajes, onCrearPartida, onUnirseParti
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
-      <GestorPartidas partidaActual={partida} onCrearPartida={onCrearPartida} onUnirsePartida={onUnirsePartida} />
+      <GestorPartidas 
+        partidaActual={partida} 
+        onCrearPartida={onCrearPartida} 
+        onUnirsePartida={onUnirsePartida} 
+        onSalirPartida={onSalirPartida} 
+      />
 
       {partida && (
         <>

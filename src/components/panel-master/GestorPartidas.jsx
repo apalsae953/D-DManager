@@ -4,7 +4,7 @@ import { Shield, Users, Copy, Check } from 'lucide-react';
 // Antes de tener una partida activa, permite crearla (como master) o unirse
 // a una existente mediante su codigo de invitacion. Una vez hay partida,
 // muestra el codigo para compartir con los jugadores.
-export function GestorPartidas({ partidaActual, onCrearPartida, onUnirsePartida }) {
+export function GestorPartidas({ partidaActual, onCrearPartida, onUnirsePartida, onSalirPartida }) {
   const [modo, setModo] = useState('crear');
   const [nombre, setNombre] = useState('');
   const [codigo, setCodigo] = useState('');
@@ -24,12 +24,22 @@ export function GestorPartidas({ partidaActual, onCrearPartida, onUnirsePartida 
           <h2 className="text-2xl font-cinzel text-stone-200">{partidaActual.nombre}</h2>
           <p className="text-sm text-stone-400">Código de invitación</p>
         </div>
-        <button
-          onClick={copiarCodigo}
-          className="flex items-center gap-2 rounded-lg bg-dndoscuro-400 px-3 py-2 font-mono text-lg font-bold tracking-widest text-stone-200 hover:bg-dndoscuro-300 border border-white/10 transition-colors"
-        >
-          {partidaActual.codigo_invitacion} {copiado ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-stone-400" />}
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={copiarCodigo}
+            className="flex items-center gap-2 rounded-lg bg-dndoscuro-400 px-3 py-2 font-mono text-lg font-bold tracking-widest text-stone-200 hover:bg-dndoscuro-300 border border-white/10 transition-colors"
+          >
+            {partidaActual.codigo_invitacion} {copiado ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-stone-400" />}
+          </button>
+          
+          <button 
+            onClick={onSalirPartida}
+            className="px-4 py-2 bg-stone-800 text-stone-300 hover:text-white hover:bg-red-600 rounded-lg transition-colors border border-white/10"
+            title="Cerrar la vista de esta partida"
+          >
+            Salir
+          </button>
+        </div>
       </div>
     );
   }

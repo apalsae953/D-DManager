@@ -293,9 +293,10 @@ export default function App() {
         });
         
         if (joinError && joinError.code === '23505') {
-          alert(`Ya eras miembro de la partida "${pData.nombre}".`);
+          // Ya era miembro
+          setPartida(pData);
         } else if (!joinError) {
-          alert(`¡Te has unido con éxito a la partida "${pData.nombre}"!`);
+          setPartida(pData);
         } else {
           alert("Ha ocurrido un error al unirse a la partida.");
         }
@@ -359,10 +360,12 @@ export default function App() {
       {vista === 'listaPersonajes' && (
         <ListaPersonajes
           personajes={personajes}
+          partida={partida}
           alSeleccionar={(p) => { setPersonajeActivo(p); setVista('ficha'); }}
           alCrear={() => setVista('creadorPersonaje')}
           alEliminar={manejarEliminarPersonaje}
           onUnirsePartida={manejarUnirsePartida}
+          onSalirPartida={() => setPartida(null)}
         />
       )}
       
@@ -388,6 +391,7 @@ export default function App() {
           onCrearPartida={manejarCrearPartida}
           onUnirsePartida={manejarUnirsePartida}
           onActualizarPersonaje={manejarGuardarPersonaje}
+          onSalirPartida={() => setPartida(null)}
         />
       )}
     </div>
