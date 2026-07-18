@@ -89,7 +89,7 @@ export default function App() {
         const { data, error } = await supabase
           .from('personajes')
           .select('*')
-          .eq('jugador_id', session.user.id);
+          .eq('usuario_id', session.user.id);
         
         if (data && !error) {
           const loaded = data.map(dbChar => {
@@ -111,7 +111,7 @@ export default function App() {
           event: 'UPDATE', 
           schema: 'public', 
           table: 'personajes', 
-          filter: `jugador_id=eq.${session.user.id}` 
+          filter: `usuario_id=eq.${session.user.id}` 
         }, (payload) => {
           const newData = payload.new;
           setPersonajes(prev => prev.map(p => {
@@ -225,7 +225,7 @@ export default function App() {
     if (session) {
       delete personajeCompleto.id; // Quitamos el ID falso local para que Supabase genere un UUID real
       const { data, error } = await supabase.from('personajes').insert({
-        jugador_id: session.user.id,
+        usuario_id: session.user.id,
         partida_id: partida?.id || null,
         nombre: personajeCompleto.nombre || 'Sin nombre',
         raza: personajeCompleto.raza,
@@ -285,10 +285,9 @@ export default function App() {
     
     if (pData && !pError) {
       if (pData.master_id !== session.user.id) {
-        // Intentar añadirlo como jugador
         const { error: joinError } = await supabase.from('miembros_partida').insert({
           partida_id: pData.id,
-          perfil_id: session.user.id,
+          usuario_id: session.user.id,
           rol: 'jugador'
         });
         
