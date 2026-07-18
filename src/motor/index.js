@@ -1,0 +1,10 @@
+export * from './caracteristicas.js';
+export * from './puntosDeVida.js';
+export * from './claseArmadura.js';
+export * from './lanzamientoConjuros.js';
+export * from './estadisticasCombate.js';
+export * from './salvacionesYHabilidades.js';
+export * from './motorPersonaje.js';
+export * from './calculadoraEncuentros.js';
+export * as SRD from './datos/tablasSRD.js';
+export * as TablasEncuentro from './datos/tablasEncuentro.js';
