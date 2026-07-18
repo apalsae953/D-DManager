@@ -241,6 +241,9 @@ export default function App() {
         // Guardamos el JSON actualizado con el nuevo ID real
         await supabase.from('personajes').update({ datos_ficha: personajeCompleto }).eq('id', data.id);
         setPersonajes(prev => [...prev, personajeCompleto]);
+      } else if (error) {
+        console.error("Error creating character:", error);
+        alert("Error al crear personaje: " + error.message);
       }
     } else {
       setPersonajes(prev => [...prev, personajeCompleto]);
