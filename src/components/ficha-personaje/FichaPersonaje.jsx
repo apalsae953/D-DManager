@@ -177,7 +177,7 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
         ))}
       </nav>
 
-      <main className={`glass-panel p-6 shadow-inner relative overflow-hidden min-h-[500px] ${modoLectura ? 'pointer-events-none' : ''}`}>
+      <main className={`glass-panel p-6 shadow-inner relative overflow-hidden flex-1 flex flex-col min-h-[500px] ${modoLectura ? 'pointer-events-none' : ''}`}>
         {pestaniaActiva === 'combate' && (
           <div className="animate-fade-in relative z-10 flex flex-col gap-6">
             <PanelDatosGenerales personaje={personaje} actualizarCampo={handleActualizarCampo} soloLectura={modoLectura} />
@@ -191,7 +191,7 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
           </div>
         )}
         {pestaniaActiva === 'inventario' && (
-          <div className="animate-fade-in relative z-10">
+          <div className="animate-fade-in relative z-10 flex-1 flex flex-col">
             <PanelInventario personaje={personaje} actualizarCampo={handleActualizarCampo} />
           </div>
         )}
@@ -201,17 +201,27 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
           </div>
         )}
         {pestaniaActiva === 'rasgos' && (
-          <div className="animate-fade-in relative z-10">
+          <div className="animate-fade-in relative z-10 flex-1 flex flex-col">
             <PanelRasgos personaje={personaje} actualizarCampo={handleActualizarCampo} subirNivel={handleSubirNivel} />
           </div>
         )}
         {pestaniaActiva === 'notas' && (
-          <div className="animate-fade-in relative z-10 h-full flex flex-col">
+          <div className="animate-fade-in relative z-10 w-full overflow-y-auto pr-2 pb-10">
             <textarea
               value={personaje.notas || ''}
               onChange={(e) => handleActualizarCampo('notas', e.target.value)}
+              onInput={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+              ref={(el) => {
+                if (el) {
+                  el.style.height = 'auto';
+                  el.style.height = el.scrollHeight + 'px';
+                }
+              }}
               placeholder="Apunta aquí tus misiones, pistas, nombres de PNJs y todo lo que necesites recordar..."
-              className="flex-1 w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors h-[400px]"
+              className="w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors overflow-hidden min-h-[400px]"
             />
           </div>
         )}

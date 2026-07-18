@@ -152,16 +152,25 @@ export function PanelMaster({ session, partida, personajes, misPartidasMaster, o
               <CalculadoraEncuentros monstruosDisponibles={todosLosMonstruos} />
             )}
             {pestaniaActiva === 'notas' && (
-              <div className="h-full flex flex-col p-4 animate-fade-in">
+              <div className="h-full flex flex-col p-4 animate-fade-in overflow-y-auto pr-2 pb-10">
                 <h3 className="text-xl font-cinzel text-stone-200 mb-4 flex items-center gap-2">
                   <Scroll className="w-6 h-6 text-sangre-500" /> Notas de la Campaña
                 </h3>
                 <textarea
                   value={partida.notas_master || ''}
                   onChange={(e) => onGuardarNotas?.(e.target.value)}
+                  onInput={(e) => {
+                    e.target.style.height = 'auto';
+                    e.target.style.height = e.target.scrollHeight + 'px';
+                  }}
+                  ref={(el) => {
+                    if (el) {
+                      el.style.height = 'auto';
+                      el.style.height = el.scrollHeight + 'px';
+                    }
+                  }}
                   placeholder="Apunta aquí la trama, nombres de NPCs, secretos o recordatorios para la próxima sesión..."
-                  className="flex-1 w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors"
-                  style={{ minHeight: '400px' }}
+                  className="w-full bg-dndoscuro-400/50 text-stone-200 border border-white/10 rounded-lg p-4 resize-none focus:outline-none focus:border-sangre-500/50 transition-colors overflow-hidden min-h-[400px]"
                 />
               </div>
             )}
