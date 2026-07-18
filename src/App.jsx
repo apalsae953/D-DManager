@@ -290,6 +290,27 @@ export default function App() {
     }
   }, [session]);
 
+  const manejarAsignacionPartida = useCallback(async (personajeId, partidaId) => {
+    // Si la partidaId es un string vacío, lo convertimos a null
+    const newPartidaId = partidaId || null;
+    
+    // Actualizamos localmente para el jugador
+    setPersonajes(prev => prev.map(p => p.id === personajeId ? { ...p, partida_id: newPartidaId } : p));
+    
+    // Si somos DM y estamos expulsando, actualizamos también localmente la lista del DM
+    if (!newPartidaId) {
+      setPersonajesPartida(prev => prev.filter(p => p.id !== personajeId));
+    }
+    
+    if (session) {
+      const { error } = await supabase.from('personajes').update({ partida_id: newPartidaId }).eq('id', personajeId);
+      if (error) {
+        console.error("Error al asignar partida:", error);
+        alert("Error al actualizar el personaje: " + error.message);
+      }
+    }
+  }, [session]);
+
   const manejarCrearPartida = async (nombre) => {
     if (!session) {
       setPartida({ ...PARTIDA_DEMO, nombre });
@@ -404,7 +425,7 @@ export default function App() {
           alCrear={() => setVista('creadorPersonaje')}
           alEliminar={manejarEliminarPersonaje}
           onUnirsePartida={manejarUnirsePartida}
-          onSalirPartida={() => setPartida(null)}
+          onAsignarPartida={manejarAsignacionPartida}
         />
       )}
       
@@ -434,6 +455,7 @@ export default function App() {
           onCrearPartida={manejarCrearPartida}
           onUnirsePartida={manejarUnirsePartida}
           onActualizarPersonaje={manejarGuardarPersonaje}
+          onExpulsarPersonaje={(id) => manejarAsignacionPartida(id, null)}
           onSalirPartida={() => setPartida(null)}
         />
       )}

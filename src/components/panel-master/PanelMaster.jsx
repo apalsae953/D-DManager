@@ -21,7 +21,7 @@ function tirarIniciativa(modificador) {
   return 1 + Math.floor(Math.random() * 20) + modificador;
 }
 
-export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida }) {
+export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida, onExpulsarPersonaje }) {
   const {
     resumenesPersonajes,
     participantes,
@@ -85,7 +85,12 @@ export function PanelMaster({ partida, personajes, misPartidasMaster, onSeleccio
           </nav>
 
           <main className="rounded-xl glass-panel p-4 shadow-inner relative overflow-hidden min-h-[500px]">
-            {pestaniaActiva === 'personajes' && <VistaGlobalPersonajes resumenesPersonajes={resumenesPersonajes} />}
+            {pestaniaActiva === 'personajes' && (
+              <VistaGlobalPersonajes 
+                resumenesPersonajes={resumenesPersonajes} 
+                onExpulsarPersonaje={onExpulsarPersonaje} 
+              />
+            )}
             {pestaniaActiva === 'combate' && (
               <TrackerIniciativa
                 participantes={participantes}

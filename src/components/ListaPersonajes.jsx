@@ -1,6 +1,6 @@
 import { Plus, User, Users, Shield, Swords, Trash2 } from 'lucide-react';
 
-export function ListaPersonajes({ personajes, misPartidasJugador = [], alSeleccionar, alCrear, alEliminar, onUnirsePartida }) {
+export function ListaPersonajes({ personajes, misPartidasJugador = [], alSeleccionar, alCrear, alEliminar, onUnirsePartida, onAsignarPartida }) {
   return (
     <div className="mx-auto max-w-4xl p-4 sm:p-6 animate-fade-in">
       <header className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -66,15 +66,32 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-dndoscuro-900 via-dndoscuro-900/40 to-transparent"></div>
-                  <div className="absolute bottom-3 left-4">
+                  <div className="absolute bottom-3 left-4 right-4">
                     <h2 className="text-xl font-cinzel font-bold text-white drop-shadow-md">{p.nombre || 'Sin nombre'}</h2>
                     <p className="text-sm text-stone-300">{p.raza} {p.clase} - Nivel {p.nivel || 1}</p>
-                    {partidaDelPersonaje && (
+                    {partidaDelPersonaje ? (
                       <p className="text-xs text-emerald-400 mt-1 font-semibold flex items-center gap-1 drop-shadow-md">
                         <Shield className="w-3 h-3" />
                         {partidaDelPersonaje.nombre}
                       </p>
-                    )}
+                    ) : (misPartidasJugador && misPartidasJugador.length > 0) ? (
+                      <div className="mt-1" onClick={e => e.stopPropagation()}>
+                        <select 
+                          className="bg-dndoscuro-900/80 text-xs text-stone-300 border border-white/10 rounded px-1 py-0.5 outline-none w-full max-w-[150px]"
+                          onChange={(e) => {
+                            if (e.target.value && onAsignarPartida) {
+                              onAsignarPartida(p.id, e.target.value);
+                            }
+                          }}
+                          value=""
+                        >
+                          <option value="" disabled>Vincular a partida...</option>
+                          {misPartidasJugador.map(game => (
+                            <option key={game.id} value={game.id}>{game.nombre}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : null}
                   </div>
                   {alEliminar && (
                     <button 

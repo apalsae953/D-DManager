@@ -1,8 +1,8 @@
-import { Heart, Shield, Eye } from 'lucide-react';
+import { Heart, Shield, Eye, UserMinus } from 'lucide-react';
 
 // Vista global en tiempo real de los personajes vinculados a la partida:
 // vida actual/maxima, CA, percepcion pasiva y estado (condiciones activas).
-export function VistaGlobalPersonajes({ resumenesPersonajes }) {
+export function VistaGlobalPersonajes({ resumenesPersonajes, onExpulsarPersonaje }) {
   if (resumenesPersonajes.length === 0) {
     return <p className="text-sm text-stone-400">Todavia no hay personajes vinculados a esta partida.</p>;
   }
@@ -23,6 +23,7 @@ export function VistaGlobalPersonajes({ resumenesPersonajes }) {
               <Eye className="inline h-3.5 w-3.5 text-stone-300" /> Perc. Pasiva
             </th>
             <th className="px-3 py-2">Estado</th>
+            <th className="px-3 py-2">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -62,6 +63,21 @@ export function VistaGlobalPersonajes({ resumenesPersonajes }) {
                         </span>
                       ))}
                     </div>
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  {onExpulsarPersonaje && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`¿Seguro que quieres expulsar a ${p.nombre || 'este personaje'} de la mesa?`)) {
+                          onExpulsarPersonaje(p.id);
+                        }
+                      }}
+                      className="text-stone-500 hover:text-red-500 transition-colors p-1 rounded hover:bg-white/5"
+                      title="Expulsar personaje"
+                    >
+                      <UserMinus className="h-4 w-4" />
+                    </button>
                   )}
                 </td>
               </tr>
