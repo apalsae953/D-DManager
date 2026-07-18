@@ -95,9 +95,19 @@ function SeccionRasgos({ titulo, lista, esNota, contenido, expandido, setExpandi
         <div className="bg-dndoscuro-400/30 rounded-md p-3">
           {editando ? (
             <textarea
-              className="w-full bg-dndoscuro-300 text-stone-200 p-2 rounded-md border border-white/10 min-h-[100px]"
+              className="w-full bg-dndoscuro-300 text-stone-200 p-2 rounded-md border border-white/10 overflow-hidden min-h-[100px] resize-none"
               value={contenido}
               onChange={(e) => onGuardar(e.target.value)}
+              onInput={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+              ref={(el) => {
+                if (el) {
+                  el.style.height = 'auto';
+                  el.style.height = el.scrollHeight + 'px';
+                }
+              }}
               placeholder="Escribe tus notas aquí..."
             />
           ) : (
@@ -118,8 +128,18 @@ function SeccionRasgos({ titulo, lista, esNota, contenido, expandido, setExpandi
               <textarea 
                 placeholder="Descripción..." 
                 value={nuevaDesc} 
-                onChange={e => setNuevaDesc(e.target.value)} 
-                className="w-full bg-dndoscuro-300 text-stone-200 p-1 rounded border border-white/10 text-sm" 
+                onChange={e => setNuevaDesc(e.target.value)}
+                onInput={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = 'auto';
+                    el.style.height = el.scrollHeight + 'px';
+                  }
+                }}
+                className="w-full bg-dndoscuro-300 text-stone-200 p-1 rounded border border-white/10 text-sm overflow-hidden min-h-[60px] resize-none" 
               />
               <div className="flex justify-end gap-2">
                 <button onClick={() => setCreando(false)} className="px-3 py-1 text-xs text-stone-400 hover:text-white">Cancelar</button>
