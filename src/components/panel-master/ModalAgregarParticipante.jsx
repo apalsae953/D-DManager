@@ -258,7 +258,7 @@ export function ModalAgregarParticipante({
                     type="number"
                     value={modIniciativaMonstruo}
                     onChange={(evento) => setModIniciativaMonstruo(Number(evento.target.value))}
-                    className="w-14 input-dnd text-center py-1 font-bold"
+                    className="w-16 input-dnd text-center py-1 font-bold font-mono"
                   />
                   <button
                     type="button"
@@ -270,13 +270,13 @@ export function ModalAgregarParticipante({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-2 border-t border-white/5 pt-2">
+              <div className="flex items-center justify-between gap-3 border-t border-white/5 pt-2">
                 <span className="text-xs text-stone-300 font-bold">Iniciativa Final (Editable):</span>
                 <input
                   type="number"
                   value={iniciativaMonstruo}
                   onChange={(evento) => setIniciativaMonstruo(Number(evento.target.value))}
-                  className="w-16 input-dnd text-center text-lg font-bold text-amber-400"
+                  className="w-24 input-dnd text-center text-lg font-bold text-amber-400 font-mono tracking-wider px-2 py-1"
                 />
               </div>
             </div>

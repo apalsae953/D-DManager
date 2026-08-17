@@ -35,6 +35,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
   const [sesionEditando, setSesionEditando] = useState(null);
   
   const [modalCombateAbierto, setModalCombateAbierto] = useState(false);
+  const [combateEditando, setCombateEditando] = useState(null);
 
   // Formulario Sesión
   const [formSesion, setFormSesion] = useState({
@@ -124,6 +125,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
   };
 
   const abrirCrearCombate = () => {
+    setCombateEditando(null);
     setFormCombate({
       nombreEncuentro: '',
       fecha: new Date().toISOString().split('T')[0],
@@ -137,6 +139,23 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
     setModalCombateAbierto(true);
   };
 
+  const abrirEditarCombate = (c) => {
+    setCombateEditando(c.id);
+    const tiposEstandar = ['Victoria', 'Retirada', 'Derrota / TPK', 'Pacto / Negociación'];
+    const esEstandar = tiposEstandar.includes(c.resultado);
+    setFormCombate({
+      nombreEncuentro: c.nombreEncuentro || '',
+      fecha: c.fecha || new Date().toISOString().split('T')[0],
+      rondas: c.rondas || 1,
+      enemigos: c.enemigos || '',
+      pxTotal: c.pxTotal || 0,
+      tipoResultado: esEstandar ? c.resultado : 'Personalizado',
+      resultadoPersonalizado: esEstandar ? '' : (c.resultado || ''),
+      notas: c.notas || '',
+    });
+    setModalCombateAbierto(true);
+  };
+
   const guardarCombate = (e) => {
     e.preventDefault();
     if (!formCombate.nombreEncuentro.trim()) return;
@@ -145,21 +164,36 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
       ? (formCombate.resultadoPersonalizado.trim() || 'Personalizado')
       : formCombate.tipoResultado;
 
-    const nuevoCombate = {
-      id: `combate-${Date.now()}`,
-      nombreEncuentro: formCombate.nombreEncuentro.trim(),
-      fecha: formCombate.fecha,
-      rondas: formCombate.rondas,
-      enemigos: formCombate.enemigos,
-      pxTotal: formCombate.pxTotal,
-      resultado: resultadoFinal,
-      notas: formCombate.notas,
-      creado_en: new Date().toISOString(),
-    };
+    let nuevosCombates;
+    if (combateEditando) {
+      nuevosCombates = combates.map(c => c.id === combateEditando ? {
+        ...c,
+        nombreEncuentro: formCombate.nombreEncuentro.trim(),
+        fecha: formCombate.fecha,
+        rondas: formCombate.rondas,
+        enemigos: formCombate.enemigos,
+        pxTotal: formCombate.pxTotal,
+        resultado: resultadoFinal,
+        notas: formCombate.notas,
+      } : c);
+    } else {
+      const nuevoCombate = {
+        id: `combate-${Date.now()}`,
+        nombreEncuentro: formCombate.nombreEncuentro.trim(),
+        fecha: formCombate.fecha,
+        rondas: formCombate.rondas,
+        enemigos: formCombate.enemigos,
+        pxTotal: formCombate.pxTotal,
+        resultado: resultadoFinal,
+        notas: formCombate.notas,
+        creado_en: new Date().toISOString(),
+      };
+      nuevosCombates = [nuevoCombate, ...combates];
+    }
 
-    const nuevosCombates = [nuevoCombate, ...combates];
     actualizarYGuardar({ ...bitacora, combates: nuevosCombates });
     setModalCombateAbierto(false);
+    setCombateEditando(null);
   };
 
   const eliminarCombate = (id) => {
@@ -352,13 +386,22 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
                       </p>
                     )}
                   </div>
-                  <button
-                    onClick={() => eliminarCombate(c.id)}
-                    className="p-2 rounded-lg bg-dndoscuro-400 hover:bg-red-950/60 text-stone-500 hover:text-red-400 transition-colors self-end sm:self-center"
-                    title="Eliminar registro"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <button
+                      onClick={() => abrirEditarCombate(c)}
+                      className="p-2 rounded-lg bg-dndoscuro-400 hover:bg-white/10 text-stone-400 hover:text-stone-200 transition-colors"
+                      title="Editar registro de combate"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => eliminarCombate(c.id)}
+                      className="p-2 rounded-lg bg-dndoscuro-400 hover:bg-red-950/60 text-stone-500 hover:text-red-400 transition-colors"
+                      title="Eliminar registro"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -490,7 +533,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
           >
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h3 className="text-xl font-cinzel font-bold text-sangre-100 flex items-center gap-2">
-                <Swords className="w-5 h-5 text-sangre-500" /> Registrar Combate
+                <Swords className="w-5 h-5 text-sangre-500" /> {combateEditando ? 'Editar Registro de Combate' : 'Registrar Combate'}
               </h3>
               <button 
                 type="button"
@@ -611,7 +654,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
                   type="submit" 
                   className="btn-primary px-6 py-2"
                 >
-                  Guardar Combate
+                  {combateEditando ? 'Guardar Cambios' : 'Guardar Combate'}
                 </button>
               </div>
             </form>
