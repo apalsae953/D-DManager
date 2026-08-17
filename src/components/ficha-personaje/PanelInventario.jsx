@@ -1,20 +1,86 @@
-import { useState } from 'react';
-import { Package, Search, Plus, Trash2, Shield, Sword, Minus, X, PlusCircle, GripVertical } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Package, Search, Plus, Trash2, Shield, Sword, Minus, X, PlusCircle, GripVertical, Sparkles, Filter, FlaskConical, Wrench, Backpack } from 'lucide-react';
 import { EQUIPO } from '../../datos/equipo.js';
 
-const TIPOS_OBJETO = ['Arma', 'Armadura', 'Munición', 'Equipo', 'Herramienta', 'Paquete', 'Montura', 'Vehículo', 'Otro'];
+const CATEGORIAS_FILTRO = [
+  { id: 'todos', etiqueta: 'Todos', Icono: Package },
+  { id: 'armas', etiqueta: 'Armas', Icono: Sword },
+  { id: 'armaduras', etiqueta: 'Armaduras', Icono: Shield },
+  { id: 'pociones', etiqueta: 'Consumibles', Icono: FlaskConical },
+  { id: 'herramientas', etiqueta: 'Herramientas', Icono: Wrench },
+  { id: 'equipo', etiqueta: 'Varios / Equipo', Icono: Backpack },
+];
+
+const TIPOS_OBJETO = ['Arma', 'Armadura', 'Munición', 'Equipo', 'Herramienta', 'Paquete', 'Poción', 'Montura', 'Vehículo', 'Otro'];
+
+function clasificarTipo(tipo = '') {
+  const t = (tipo || '').toLowerCase();
+  if (t.includes('arma') || t.includes('espada') || t.includes('arco') || t.includes('daga') || t.includes('hacha') || t.includes('maza')) return 'armas';
+  if (t.includes('armadura') || t.includes('escudo') || t.includes('cota') || t.includes('cuero') || t.includes('placas')) return 'armaduras';
+  if (t.includes('poción') || t.includes('pocion') || t.includes('munición') || t.includes('municion') || t.includes('consumible') || t.includes('comida') || t.includes('ungüento')) return 'pociones';
+  if (t.includes('herramienta') || t.includes('instrumento') || t.includes('kit') || t.includes('útil')) return 'herramientas';
+  return 'equipo';
+}
 
 export function PanelInventario({ personaje, actualizarCampo }) {
-  const [busqueda, setBusqueda] = useState('');
+  const [busquedaManual, setBusquedaManual] = useState('');
+  const [busquedaInventario, setBusquedaInventario] = useState('');
+  const [filtroCategoria, setFiltroCategoria] = useState('todos');
   const [creadorAbierto, setCreadorAbierto] = useState(false);
-  const [nuevoObjeto, setNuevoObjeto] = useState({ nombre: '', tipo: 'Equipo', subtipo: '', daño: '', peso: '', coste: '', propiedades: '', descripcion: '' });
+  const [nuevoObjeto, setNuevoObjeto] = useState({ 
+    nombre: '', 
+    tipo: 'Equipo', 
+    subtipo: '', 
+    daño: '', 
+    peso: '', 
+    coste: '', 
+    propiedades: '', 
+    descripcion: '' 
+  });
   
   const equipoActual = personaje.equipo || [];
 
-  const objetosFiltrados = EQUIPO.filter(item => 
-    item.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-    (item.tipo && item.tipo.toLowerCase().includes(busqueda.toLowerCase()))
-  ).slice(0, 30);
+  // Filtrado de los objetos que tiene el personaje
+  const inventarioFiltrado = useMemo(() => {
+    return equipoActual.filter(item => {
+      // Filtro de texto
+      const coincideTexto = !busquedaInventario.trim() || 
+        item.nombre.toLowerCase().includes(busquedaInventario.toLowerCase()) ||
+        (item.tipo && item.tipo.toLowerCase().includes(busquedaInventario.toLowerCase())) ||
+        (item.propiedades && item.propiedades.toLowerCase().includes(busquedaInventario.toLowerCase()));
+
+      if (!coincideTexto) return false;
+
+      // Filtro de categoría
+      if (filtroCategoria === 'todos') return true;
+      const cat = clasificarTipo(item.tipo);
+      return cat === filtroCategoria;
+    });
+  }, [equipoActual, busquedaInventario, filtroCategoria]);
+
+  // Conteo por categoría para insignias
+  const conteos = useMemo(() => {
+    const counts = { todos: equipoActual.length, armas: 0, armaduras: 0, pociones: 0, herramientas: 0, equipo: 0 };
+    equipoActual.forEach(item => {
+      const c = clasificarTipo(item.tipo);
+      if (counts[c] !== undefined) counts[c]++;
+      else counts.equipo++;
+    });
+    return counts;
+  }, [equipoActual]);
+
+  // Filtrado del manual SRD
+  const objetosManualFiltrados = useMemo(() => {
+    return EQUIPO.filter(item => {
+      const coincideTexto = !busquedaManual.trim() ||
+        item.nombre.toLowerCase().includes(busquedaManual.toLowerCase()) || 
+        (item.tipo && item.tipo.toLowerCase().includes(busquedaManual.toLowerCase()));
+      
+      if (!coincideTexto) return false;
+      if (filtroCategoria === 'todos') return true;
+      return clasificarTipo(item.tipo) === filtroCategoria;
+    }).slice(0, 30);
+  }, [busquedaManual, filtroCategoria]);
 
   const añadirObjeto = (objeto) => {
     let nombre = objeto.nombre;
@@ -57,54 +123,112 @@ export function PanelInventario({ personaje, actualizarCampo }) {
   };
 
   const IconoPorTipo = (tipo) => {
-    if (!tipo) return <Package className="w-4 h-4 text-stone-500" />;
-    const t = tipo.toLowerCase();
-    if (t.includes('arma') || t.includes('munición')) return <Sword className="w-4 h-4 text-sangre-500" />;
-    if (t.includes('armadura') || t.includes('escudo')) return <Shield className="w-4 h-4 text-indigo-500" />;
-    return <Package className="w-4 h-4 text-stone-500" />;
+    const cat = clasificarTipo(tipo);
+    if (cat === 'armas') return <Sword className="w-4 h-4 text-red-400 flex-shrink-0" />;
+    if (cat === 'armaduras') return <Shield className="w-4 h-4 text-indigo-400 flex-shrink-0" />;
+    if (cat === 'pociones') return <FlaskConical className="w-4 h-4 text-emerald-400 flex-shrink-0" />;
+    if (cat === 'herramientas') return <Wrench className="w-4 h-4 text-amber-400 flex-shrink-0" />;
+    return <Package className="w-4 h-4 text-stone-400 flex-shrink-0" />;
   };
 
   // Cálculo de capacidad de carga
-  const fuerza = personaje.caracteristicas?.fue || 10;
+  const fuerza = personaje.caracteristicas?.fue?.base || (typeof personaje.caracteristicas?.fue === 'number' ? personaje.caracteristicas.fue : 10);
   const capacidadCarga = fuerza * 15;
   const pesoActual = equipoActual.reduce((total, item) => {
-    const pesoNum = parseFloat(item.peso) || 0;
+    const pesoNum = parseFloat(String(item.peso || '').replace(',', '.')) || 0;
     return total + (pesoNum * (item.cantidad || 1));
   }, 0);
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 animate-fade-in">
-      {/* Lista del inventario del personaje */}
-      <div className="flex-1 space-y-4">
-        <div className="flex items-center justify-between border-b-2 border-sangre-800/50 pb-2 mb-4">
-          <h2 className="text-2xl font-cinzel text-sangre-100">Equipamiento</h2>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setCreadorAbierto(true)}
-              className="flex items-center gap-1.5 text-xs font-bold text-stone-400 hover:text-sangre-400 bg-dndoscuro-400/50 hover:bg-dndoscuro-300 border border-white/10 rounded-lg px-2.5 py-1.5 transition-all uppercase tracking-wider"
-            >
-              <PlusCircle className="w-3.5 h-3.5" /> Crear objeto
-            </button>
-          </div>
-        </div>
+    <div className="w-full max-w-full overflow-x-hidden flex flex-col lg:flex-row gap-6 animate-fade-in text-stone-200">
+      
+      {/* SECCIÓN 1: INVENTARIO DEL PERSONAJE */}
+      <div className="flex-1 min-w-0 space-y-4">
         
+        {/* Cabecera y botón crear */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-sangre-800/50 pb-3">
+          <h2 className="text-xl sm:text-2xl font-cinzel font-bold text-sangre-100 flex items-center gap-2">
+            <Package className="w-5 h-5 text-sangre-500" /> Equipamiento e Inventario
+          </h2>
+          <button
+            onClick={() => setCreadorAbierto(true)}
+            className="btn-primary py-1.5 px-3 text-xs flex items-center gap-1.5"
+          >
+            <PlusCircle className="w-4 h-4" /> Crear Objeto
+          </button>
+        </div>
+
+        {/* Barra de Filtros por Categoría */}
+        <div className="flex flex-wrap items-center gap-1.5 pb-1">
+          {CATEGORIAS_FILTRO.map(({ id, etiqueta, Icono }) => {
+            const activo = filtroCategoria === id;
+            const cantidad = conteos[id] || 0;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setFiltroCategoria(id)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activo
+                    ? 'bg-sangre-700 text-white shadow-neon border border-sangre-500/50'
+                    : 'bg-dndoscuro-400/50 text-stone-400 hover:text-stone-200 hover:bg-dndoscuro-300 border border-white/5'
+                }`}
+              >
+                <Icono className="w-3.5 h-3.5" />
+                <span>{etiqueta}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activo ? 'bg-black/30 text-white' : 'bg-black/20 text-stone-400'}`}>
+                  {cantidad}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Buscador dentro de mi inventario */}
+        {equipoActual.length > 5 && (
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-stone-500" />
+            <input
+              type="text"
+              value={busquedaInventario}
+              onChange={(e) => setBusquedaInventario(e.target.value)}
+              placeholder="Buscar en mi inventario..."
+              className="w-full input-dnd pl-9 py-1.5 text-xs rounded-lg"
+            />
+            {busquedaInventario && (
+              <button
+                onClick={() => setBusquedaInventario('')}
+                className="absolute right-3 top-2 text-stone-500 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
+        
+        {/* Lista de objetos del inventario */}
         {equipoActual.length === 0 ? (
-          <p className="text-stone-500 text-sm italic p-4 text-center border border-dashed border-white/10 rounded-lg">Tu inventario está vacío. Busca objetos en el manual o crea los tuyos propios.</p>
+          <div className="p-8 text-center glass-panel rounded-xl border border-dashed border-white/10 space-y-2">
+            <Package className="w-10 h-10 text-stone-600 mx-auto opacity-50" />
+            <p className="text-stone-300 text-sm font-cinzel">Tu inventario está vacío</p>
+            <p className="text-stone-500 text-xs">Busca objetos en el manual de la derecha o crea tu propio equipo personalizado.</p>
+          </div>
+        ) : inventarioFiltrado.length === 0 ? (
+          <p className="text-stone-500 text-xs italic p-4 text-center glass-panel rounded-lg">
+            No hay objetos que coincidan con el filtro seleccionado.
+          </p>
         ) : (
           <div 
-            className="space-y-1 max-h-[500px] overflow-y-auto pr-2 divide-y divide-white/5 bg-dndoscuro-400/30 rounded-lg border border-white/5"
+            className="space-y-1.5 max-h-[520px] overflow-y-auto overflow-x-hidden pr-1 bg-dndoscuro-900/40 rounded-xl border border-white/5 p-1"
             onDragOver={(e) => {
               const container = e.currentTarget;
               const rect = container.getBoundingClientRect();
               const y = e.clientY - rect.top;
-              if (y < 40) {
-                container.scrollTop -= 15;
-              } else if (y > rect.height - 40) {
-                container.scrollTop += 15;
-              }
+              if (y < 40) container.scrollTop -= 15;
+              else if (y > rect.height - 40) container.scrollTop += 15;
             }}
           >
-            {equipoActual.map((item, index) => (
+            {inventarioFiltrado.map((item, index) => (
               <ObjetoItem 
                 key={item.id_instancia} 
                 item={item} 
@@ -118,39 +242,47 @@ export function PanelInventario({ personaje, actualizarCampo }) {
           </div>
         )}
 
-        {/* Resumen de Carga */}
-        <div className="grid grid-cols-2 gap-4 mt-6">
-          <div className="bg-dndoscuro-400/50 border border-white/5 rounded-lg p-3 text-center">
-            <div className="text-[10px] text-stone-500 uppercase tracking-wider mb-1">Carga Transportada</div>
-            <div className={`text-2xl font-bold ${pesoActual > capacidadCarga ? 'text-sangre-500' : 'text-stone-200'}`}>
-              {pesoActual.toFixed(1)} kg
+        {/* Resumen de Capacidad de Carga */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="bg-dndoscuro-900/60 border border-white/5 rounded-xl p-3 text-center">
+            <div className="text-[10px] text-stone-400 uppercase tracking-wider font-bold mb-0.5">Carga Actual</div>
+            <div className={`text-xl font-bold font-mono ${pesoActual > capacidadCarga ? 'text-red-400' : 'text-stone-200'}`}>
+              {pesoActual.toFixed(1)} <span className="text-xs font-normal text-stone-400">kg</span>
             </div>
           </div>
-          <div className="bg-dndoscuro-400/50 border border-white/5 rounded-lg p-3 text-center">
-            <div className="text-[10px] text-stone-500 uppercase tracking-wider mb-1">Capacidad de Carga</div>
-            <div className="text-2xl font-bold text-stone-200">
-              {capacidadCarga} kg
+          <div className="bg-dndoscuro-900/60 border border-white/5 rounded-xl p-3 text-center">
+            <div className="text-[10px] text-stone-400 uppercase tracking-wider font-bold mb-0.5">Capacidad Máxima</div>
+            <div className="text-xl font-bold font-mono text-emerald-400">
+              {capacidadCarga} <span className="text-xs font-normal text-stone-400">kg</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Buscador de objetos SRD */}
-      <div className="w-full md:w-1/3 flex flex-col h-[600px] bg-dndoscuro-300/30 rounded-xl border border-white/5 overflow-hidden">
-        <div className="p-4 border-b border-white/5 bg-dndoscuro-400/50">
-          <h3 className="font-cinzel text-stone-200 mb-3 flex items-center gap-2">
-            <Search className="w-4 h-4" /> Buscar en el Manual
+      {/* SECCIÓN 2: BUSCADOR DE OBJETOS SRD */}
+      <div className="w-full lg:w-80 xl:w-96 flex flex-col h-[500px] lg:h-[620px] bg-dndoscuro-900/60 rounded-xl border border-white/10 overflow-hidden flex-shrink-0">
+        <div className="p-3 border-b border-white/5 bg-dndoscuro-950/60 space-y-2">
+          <h3 className="font-cinzel text-sm font-bold text-stone-200 flex items-center gap-2">
+            <Search className="w-4 h-4 text-sangre-400" /> Manual de Equipo SRD
           </h3>
-          <input 
-            type="text" 
-            placeholder="Buscar espada, poción..." 
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="input-dnd text-sm py-2"
-          />
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-stone-500" />
+            <input 
+              type="text" 
+              placeholder="Buscar espada, escudo, poción..." 
+              value={busquedaManual}
+              onChange={(e) => setBusquedaManual(e.target.value)}
+              className="w-full input-dnd text-xs pl-8 py-1.5 rounded-lg"
+            />
+            {busquedaManual && (
+              <button onClick={() => setBusquedaManual('')} className="absolute right-3 top-2 text-stone-500 hover:text-white">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {objetosFiltrados.map(item => (
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 space-y-1">
+          {objetosManualFiltrados.map(item => (
             <ObjetoItem 
               key={item.nombre} 
               item={item} 
@@ -159,68 +291,124 @@ export function PanelInventario({ personaje, actualizarCampo }) {
               esBuscador={true}
             />
           ))}
-          {objetosFiltrados.length === 0 && (
-            <p className="text-center text-xs text-stone-500 p-4">No se encontraron objetos.</p>
+          {objetosManualFiltrados.length === 0 && (
+            <p className="text-center text-xs text-stone-500 p-6 italic">No se encontraron objetos en el manual.</p>
           )}
-          {objetosFiltrados.length === 30 && (
-            <p className="text-center text-[10px] text-stone-500 p-2 italic">Mostrando los primeros 30 resultados. Escribe para buscar más.</p>
+          {objetosManualFiltrados.length === 30 && (
+            <p className="text-center text-[10px] text-stone-500 p-2 italic">Mostrando 30 resultados. Escribe para afinar la búsqueda.</p>
           )}
         </div>
       </div>
 
-      {/* Modal de creación de objeto personalizado */}
+      {/* MODAL DE CREACIÓN DE OBJETO PERSONALIZADO */}
       {creadorAbierto && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setCreadorAbierto(false)}>
-          <div className="w-full max-w-lg rounded-xl bg-[#111111] border border-sangre-800/50 p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-cinzel text-xl font-bold text-sangre-100">Crear Objeto Personalizado</h2>
-              <button onClick={() => setCreadorAbierto(false)} className="text-stone-500 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in" onClick={() => setCreadorAbierto(false)}>
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-dndoscuro-900 border border-sangre-600/50 p-6 shadow-2xl space-y-4 animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h2 className="font-cinzel text-xl font-bold text-sangre-100 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-400" /> Crear Objeto Personalizado
+              </h2>
+              <button onClick={() => setCreadorAbierto(false)} className="p-1 rounded-full text-stone-400 hover:text-white hover:bg-white/10 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-stone-400 uppercase tracking-wider mb-1">Nombre *</label>
-                <input value={nuevoObjeto.nombre} onChange={e => setNuevoObjeto({...nuevoObjeto, nombre: e.target.value})} placeholder="Ej. Espada del Alba" className="input-dnd" />
+                <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Nombre del Objeto *</label>
+                <input 
+                  value={nuevoObjeto.nombre} 
+                  onChange={e => setNuevoObjeto({...nuevoObjeto, nombre: e.target.value})} 
+                  placeholder="Ej. Espada Lunar de Fuego" 
+                  className="w-full input-dnd py-2" 
+                  autoFocus
+                  required
+                />
               </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-stone-400 uppercase tracking-wider mb-1">Tipo</label>
-                  <select value={nuevoObjeto.tipo} onChange={e => setNuevoObjeto({...nuevoObjeto, tipo: e.target.value})} className="input-dnd appearance-none">
+                  <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Tipo</label>
+                  <select 
+                    value={nuevoObjeto.tipo} 
+                    onChange={e => setNuevoObjeto({...nuevoObjeto, tipo: e.target.value})} 
+                    className="w-full input-dnd py-2"
+                  >
                     {TIPOS_OBJETO.map(t => <option key={t} value={t} className="bg-dndoscuro-400">{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-stone-400 uppercase tracking-wider mb-1">Subtipo</label>
-                  <input value={nuevoObjeto.subtipo} onChange={e => setNuevoObjeto({...nuevoObjeto, subtipo: e.target.value})} placeholder="Ej. Marcial cuerpo a cuerpo" className="input-dnd" />
+                  <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Subtipo</label>
+                  <input 
+                    value={nuevoObjeto.subtipo} 
+                    onChange={e => setNuevoObjeto({...nuevoObjeto, subtipo: e.target.value})} 
+                    placeholder="Ej. Marcial, Ligera..." 
+                    className="w-full input-dnd py-2 text-xs" 
+                  />
                 </div>
               </div>
+
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs text-stone-400 uppercase tracking-wider mb-1">Daño</label>
-                  <input value={nuevoObjeto.daño} onChange={e => setNuevoObjeto({...nuevoObjeto, daño: e.target.value})} placeholder="Ej. 2d6 Cortante" className="input-dnd" />
+                  <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Daño / CA</label>
+                  <input 
+                    value={nuevoObjeto.daño} 
+                    onChange={e => setNuevoObjeto({...nuevoObjeto, daño: e.target.value})} 
+                    placeholder="Ej. 1d8+2 Cortante" 
+                    className="w-full input-dnd py-2 text-xs" 
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs text-stone-400 uppercase tracking-wider mb-1">Peso</label>
-                  <input value={nuevoObjeto.peso} onChange={e => setNuevoObjeto({...nuevoObjeto, peso: e.target.value})} placeholder="Ej. 1,35 kg" className="input-dnd" />
+                  <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Peso</label>
+                  <input 
+                    value={nuevoObjeto.peso} 
+                    onChange={e => setNuevoObjeto({...nuevoObjeto, peso: e.target.value})} 
+                    placeholder="Ej. 1,5 kg" 
+                    className="w-full input-dnd py-2 text-xs" 
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs text-stone-400 uppercase tracking-wider mb-1">Coste</label>
-                  <input value={nuevoObjeto.coste} onChange={e => setNuevoObjeto({...nuevoObjeto, coste: e.target.value})} placeholder="Ej. 50 po" className="input-dnd" />
+                  <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Coste</label>
+                  <input 
+                    value={nuevoObjeto.coste} 
+                    onChange={e => setNuevoObjeto({...nuevoObjeto, coste: e.target.value})} 
+                    placeholder="Ej. 150 po" 
+                    className="w-full input-dnd py-2 text-xs" 
+                  />
                 </div>
               </div>
+
               <div>
-                <label className="block text-xs text-stone-400 uppercase tracking-wider mb-1">Propiedades</label>
-                <input value={nuevoObjeto.propiedades} onChange={e => setNuevoObjeto({...nuevoObjeto, propiedades: e.target.value})} placeholder="Ej. Sutil, ligera, arrojadiza (6/18 m)" className="input-dnd" />
+                <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Propiedades</label>
+                <input 
+                  value={nuevoObjeto.propiedades} 
+                  onChange={e => setNuevoObjeto({...nuevoObjeto, propiedades: e.target.value})} 
+                  placeholder="Ej. Sutil, Versátil, Arrojadiza..." 
+                  className="w-full input-dnd py-2 text-xs" 
+                />
               </div>
+
               <div>
-                <label className="block text-xs text-stone-400 uppercase tracking-wider mb-1">Descripción</label>
-                <textarea value={nuevoObjeto.descripcion} onChange={e => setNuevoObjeto({...nuevoObjeto, descripcion: e.target.value})} placeholder="Describe el objeto..." rows={2} className="input-dnd resize-none" />
+                <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Descripción / Efecto Mágico</label>
+                <textarea 
+                  value={nuevoObjeto.descripcion} 
+                  onChange={e => setNuevoObjeto({...nuevoObjeto, descripcion: e.target.value})} 
+                  placeholder="Describe la historia o efectos de este objeto..." 
+                  rows={3} 
+                  className="w-full input-dnd py-2 text-xs resize-none" 
+                />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-5">
-              <button onClick={() => setCreadorAbierto(false)} className="btn-secondary text-sm">Cancelar</button>
-              <button onClick={crearObjetoPersonalizado} disabled={!nuevoObjeto.nombre.trim()} className="btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+              <button onClick={() => setCreadorAbierto(false)} className="btn-secondary px-5 py-2 text-xs">
+                Cancelar
+              </button>
+              <button 
+                onClick={crearObjetoPersonalizado} 
+                disabled={!nuevoObjeto.nombre.trim()} 
+                className="btn-primary px-6 py-2 text-xs disabled:opacity-40"
+              >
                 <Plus className="w-4 h-4 mr-1 inline" /> Añadir al Inventario
               </button>
             </div>
@@ -234,18 +422,27 @@ export function PanelInventario({ personaje, actualizarCampo }) {
 function ObjetoItem({ item, index, accion, IconoPorTipo, esBuscador, onActualizar, onMover }) {
   const [expandido, setExpandido] = useState(false);
   
-  const esArmaOArmadura = item.tipo && (item.tipo.toLowerCase().includes('arma') || item.tipo.toLowerCase().includes('armadura') || item.tipo.toLowerCase().includes('escudo'));
+  const esArmaOArmadura = item.tipo && (
+    item.tipo.toLowerCase().includes('arma') || 
+    item.tipo.toLowerCase().includes('armadura') || 
+    item.tipo.toLowerCase().includes('escudo')
+  );
 
   return (
     <div 
-      className={`p-2 group transition-colors flex justify-between items-start ${esBuscador ? 'cursor-pointer border border-white/5 rounded-lg mb-1 bg-dndoscuro-400/50 hover:bg-white/5' : 'bg-dndoscuro-400/10 hover:bg-white/5 cursor-grab active:cursor-grabbing border-b border-white/5 last:border-0'}`} 
-      onClick={() => esBuscador && setExpandido(!expandido)}
+      className={`w-full max-w-full rounded-xl transition-all border ${
+        esBuscador 
+          ? 'p-2.5 cursor-pointer border-white/5 bg-dndoscuro-950/40 hover:bg-white/5 mb-1.5' 
+          : item.equipado 
+            ? 'p-2.5 bg-sangre-950/30 border-sangre-600/40 hover:border-sangre-500' 
+            : 'p-2.5 bg-dndoscuro-950/60 border-white/5 hover:border-white/10'
+      }`} 
+      onClick={() => esBuscador && accion?.handler()}
       draggable={!esBuscador}
       onDragStart={(e) => {
         if (!esBuscador) {
           e.dataTransfer.setData('text/plain', index);
           e.dataTransfer.effectAllowed = 'move';
-          // Opcional: estilo al arrastrar
           e.currentTarget.style.opacity = '0.5';
         }
       }}
@@ -268,65 +465,127 @@ function ObjetoItem({ item, index, accion, IconoPorTipo, esBuscador, onActualiza
         }
       }}
     >
-      
-      {!esBuscador && (
-        <div className="mt-1 mr-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-stone-500 hover:text-stone-300">
-          <GripVertical className="w-4 h-4" />
-        </div>
-      )}
-
-      {!esBuscador && esArmaOArmadura && (
-        <button 
-          onClick={(e) => { e.stopPropagation(); onActualizar({ equipado: !item.equipado }); }}
-          className="mt-1 mr-3 flex-shrink-0 w-6 h-6 rounded-full border-2 border-stone-500/50 flex items-center justify-center hover:border-sangre-400/50 transition-colors"
-          title={item.equipado ? "Desequipar" : "Equipar"}
+      <div className="flex items-center justify-between gap-2 min-w-0">
+        
+        {/* Lado izquierdo: Grip + Check Equipado + Icono + Nombre */}
+        <div 
+          className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer select-none"
+          onClick={() => setExpandido(!expandido)}
         >
-          {item.equipado && <div className="w-3 h-3 bg-sangre-500 rounded-full"></div>}
-        </button>
-      )}
-      {!esBuscador && !esArmaOArmadura && (
-        <div className="mt-1 mr-3 flex-shrink-0 w-6 h-6 rounded-full border-2 border-transparent"></div>
-      )}
+          {!esBuscador && (
+            <div className="hidden sm:block text-stone-600 hover:text-stone-400 cursor-grab flex-shrink-0" title="Arrastrar para ordenar">
+              <GripVertical className="w-3.5 h-3.5" />
+            </div>
+          )}
 
-      <div className="flex items-start gap-3 flex-1 cursor-pointer" onClick={(e) => { !esBuscador && setExpandido(!expandido); }}>
-        <div className="flex-1">
-          <h4 className={`font-bold text-stone-200 ${esBuscador ? 'text-sm' : ''}`}>{item.nombre}</h4>
-          <p className="text-xs text-stone-400 mt-0.5">
-            {item.tipo} • {esBuscador ? item.coste : item.peso} {item.daño && `• ${item.daño}`} {item.ca_base && `• CA ${item.ca_base}`}
-          </p>
+          {!esBuscador && esArmaOArmadura && (
+            <button 
+              type="button"
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                onActualizar?.({ equipado: !item.equipado }); 
+              }}
+              className={`flex-shrink-0 w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                item.equipado 
+                  ? 'bg-sangre-600 border-sangre-400 text-white shadow-neon' 
+                  : 'border-stone-600 bg-dndoscuro-900 hover:border-stone-400'
+              }`}
+              title={item.equipado ? "Equipado (Click para desequipar)" : "No equipado (Click para equipar)"}
+            >
+              {item.equipado && <Shield className="w-3 h-3" />}
+            </button>
+          )}
+
+          {IconoPorTipo?.(item.tipo)}
+
+          <div className="min-w-0 flex-1">
+            <h4 className="font-bold text-stone-100 text-xs sm:text-sm truncate">
+              {item.nombre}
+            </h4>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] sm:text-xs text-stone-400 font-mono">
+              <span>{item.tipo || 'Objeto'}</span>
+              {item.peso && <span>· {item.peso}</span>}
+              {item.daño && <span className="text-red-400 font-bold">· {item.daño}</span>}
+              {item.ca_base && <span className="text-indigo-400 font-bold">· CA {item.ca_base}</span>}
+              {item.coste && <span>· {item.coste}</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Lado derecho: Cantidad + Acciones */}
+        {!esBuscador ? (
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center bg-dndoscuro-900 rounded-lg border border-white/10 p-0.5">
+              <button 
+                type="button"
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  onActualizar?.({ cantidad: Math.max(1, (item.cantidad || 1) - 1) }); 
+                }} 
+                className="p-1 hover:text-white text-stone-400 rounded hover:bg-white/10"
+                title="Reducir cantidad"
+              >
+                <Minus className="w-3 h-3"/>
+              </button>
+              <span className="w-5 text-center text-xs font-bold font-mono text-amber-300">
+                {item.cantidad || 1}
+              </span>
+              <button 
+                type="button"
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  onActualizar?.({ cantidad: (item.cantidad || 1) + 1 }); 
+                }} 
+                className="p-1 hover:text-white text-stone-400 rounded hover:bg-white/10"
+                title="Aumentar cantidad"
+              >
+                <Plus className="w-3 h-3"/>
+              </button>
+            </div>
+
+            <button 
+              type="button"
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                if (window.confirm(`¿Eliminar "${item.nombre}" del inventario?`)) {
+                  accion?.handler(); 
+                }
+              }}
+              className="p-1.5 text-stone-500 hover:text-red-400 hover:bg-red-950/40 rounded-lg transition-colors"
+              title="Eliminar"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button 
+            type="button"
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              accion?.handler(); 
+            }}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sangre-800 hover:bg-sangre-600 text-white text-xs font-bold transition-all shadow flex-shrink-0"
+            title="Añadir a mi personaje"
+          >
+            <Plus className="w-3.5 h-3.5" /> Añadir
+          </button>
+        )}
+      </div>
+
+      {/* Descripción expandible */}
+      {expandido && (item.descripcion || item.propiedades) && (
+        <div className="mt-2 pt-2 border-t border-white/5 text-xs text-stone-300 space-y-1 animate-fade-in font-serif leading-relaxed">
+          {item.propiedades && (
+            <p className="text-[11px] text-amber-300/90 font-mono">
+              <strong>Propiedades:</strong> {item.propiedades}
+            </p>
+          )}
           {item.descripcion && (
-            <p className={`text-xs text-stone-400 mt-1 transition-all ${expandido ? '' : 'line-clamp-1'}`}>
+            <p className="whitespace-pre-line text-stone-300/90">
               {item.descripcion}
             </p>
           )}
         </div>
-      </div>
-
-      {!esBuscador && (
-        <div className="flex items-center gap-2 ml-4">
-          <div className="flex items-center bg-dndoscuro-300 rounded border border-white/10">
-             <button onClick={(e) => { e.stopPropagation(); onActualizar({ cantidad: Math.max(1, (item.cantidad || 1) - 1) }); }} className="p-1 hover:text-white text-stone-400"><Minus className="w-3 h-3"/></button>
-             <span className="w-6 text-center text-xs font-bold text-sangre-400">{item.cantidad || 1}</span>
-             <button onClick={(e) => { e.stopPropagation(); onActualizar({ cantidad: (item.cantidad || 1) + 1 }); }} className="p-1 hover:text-white text-stone-400"><Plus className="w-3 h-3"/></button>
-          </div>
-          <button 
-            onClick={(e) => { e.stopPropagation(); accion.handler(); }}
-            className="p-1.5 text-stone-500 hover:text-sangre-500 hover:bg-sangre-900/30 rounded-md opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
-            title="Eliminar del inventario"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {esBuscador && (
-        <button 
-          onClick={(e) => { e.stopPropagation(); accion.handler(); }}
-          className="p-1 rounded bg-sangre-800/50 text-white hover:bg-sangre-600 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0 ml-2"
-          title="Añadir al inventario"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
       )}
     </div>
   );

@@ -1,12 +1,31 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, User, Shield, Swords, Trash2, Link } from 'lucide-react';
 import { ModalVincularPartida } from './ModalVincularPartida.jsx';
 
-export function ListaPersonajes({ personajes, misPartidasJugador = [], alSeleccionar, alCrear, alEliminar, onUnirsePartida, onAsignarPartida, onSalirPartidaJugador }) {
+export function ListaPersonajes({ 
+  personajes, 
+  misPartidasJugador = [], 
+  misPartidasMaster = [],
+  session,
+  alSeleccionar, 
+  alCrear, 
+  alEliminar, 
+  onUnirsePartida, 
+  onAsignarPartida, 
+  onSalirPartidaJugador 
+}) {
   const [personajeAVincular, setPersonajeAVincular] = useState(null);
 
+  const todasLasPartidas = useMemo(() => {
+    const mapa = new Map();
+    [...(misPartidasMaster || []), ...(misPartidasJugador || [])].forEach(p => {
+      if (p && p.id && p.nombre) mapa.set(p.id, p);
+    });
+    return Array.from(mapa.values());
+  }, [misPartidasMaster, misPartidasJugador]);
+
   return (
-    <div className="mx-auto max-w-4xl p-4 sm:p-6 animate-fade-in">
+    <div className="mx-auto max-w-4xl p-4 sm:p-6 animate-fade-in text-stone-200">
       <header className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-cinzel font-bold text-sangre-100 drop-shadow-md">Mis Personajes</h1>
@@ -31,7 +50,7 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
           </div>
         ) : (
           personajes.map((p) => {
-            const partidaDelPersonaje = misPartidasJugador.find(game => game.id === p.partida_id);
+            const partidaDelPersonaje = todasLasPartidas.find(game => game.id === p.partida_id);
             return (
               <div 
                 key={p.id} 
@@ -50,15 +69,22 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
                   <div className="absolute bottom-3 left-4 right-4">
                     <h2 className="text-xl font-cinzel font-bold text-white drop-shadow-md">{p.nombre || 'Sin nombre'}</h2>
                     <p className="text-sm text-stone-300">{p.raza} {p.clase} - Nivel {p.nivel || 1}</p>
+                    
                     {partidaDelPersonaje ? (
-                      <div className="flex items-center justify-between mt-1" onClick={e => e.stopPropagation()}>
-                        <p className="text-xs text-emerald-400 font-semibold flex items-center gap-1 drop-shadow-md">
-                          <Shield className="w-3 h-3" />
-                          {partidaDelPersonaje.nombre}
+                      <div className="flex items-center justify-between mt-1.5" onClick={e => e.stopPropagation()}>
+                        <p className="text-xs text-emerald-400 font-semibold flex items-center gap-1 drop-shadow-md truncate">
+                          <Shield className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span className="truncate">{partidaDelPersonaje.nombre}</span>
                         </p>
                         <button
-                          onClick={() => onAsignarPartida(p.id, null)}
-                          className="text-[10px] text-stone-400 hover:text-red-400 font-bold underline ml-2 transition-colors cursor-pointer"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`¿Desvincular a "${p.nombre || 'este personaje'}" de la campaña "${partidaDelPersonaje.nombre}"?`)) {
+                              onAsignarPartida(p.id, null);
+                            }
+                          }}
+                          className="text-[10px] text-stone-400 hover:text-red-400 font-bold underline ml-2 transition-colors cursor-pointer flex-shrink-0"
                           title="Desvincular personaje de esta campaña"
                         >
                           Desvincular
@@ -67,6 +93,7 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
                     ) : (
                       <div className="mt-2" onClick={e => e.stopPropagation()}>
                         <button
+                          type="button"
                           onClick={() => setPersonajeAVincular(p)}
                           className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-stone-300 bg-dndoscuro-900/80 hover:bg-sangre-700/80 hover:text-white px-2.5 py-1.5 rounded-md border border-white/10 transition-colors w-fit"
                         >
@@ -75,8 +102,10 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
                       </div>
                     )}
                   </div>
+
                   {alEliminar && (
                     <button 
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (window.confirm(`¿Seguro que quieres eliminar a ${p.nombre || 'este personaje'}? No podrás recuperarlo.`)) {
@@ -90,6 +119,7 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
                     </button>
                   )}
                 </div>
+                
                 <div className="p-4 flex justify-between items-center bg-dndoscuro-300/50">
                   <div className="flex items-center gap-4 text-sm text-stone-400">
                     <div className="flex items-center gap-1"><Shield className="w-4 h-4" /> CA {p.ca || 10}</div>
@@ -104,7 +134,8 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
 
       <ModalVincularPartida
         personaje={personajeAVincular}
-        misPartidasJugador={misPartidasJugador}
+        misPartidasJugador={todasLasPartidas}
+        session={session}
         onClose={() => setPersonajeAVincular(null)}
         onVincular={onAsignarPartida}
         onUnirse={onUnirsePartida}

@@ -174,6 +174,7 @@ export default function App() {
             return {
               ...def,
               ...(dbChar.datos_ficha || {}),
+              partida_id: dbChar.partida_id || dbChar.datos_ficha?.partida_id || null,
               id: dbChar.id // Usamos el UUID real de la base de datos
             };
           });
@@ -194,7 +195,12 @@ export default function App() {
           setPersonajes(prev => prev.map(p => {
             if (p.id === newData.id) {
               const def = crearPersonajePorDefecto();
-              return { ...def, ...(newData.datos_ficha || {}), id: newData.id };
+              return { 
+                ...def, 
+                ...(newData.datos_ficha || {}), 
+                partida_id: newData.partida_id || newData.datos_ficha?.partida_id || null,
+                id: newData.id 
+              };
             }
             return p;
           }));
@@ -211,8 +217,6 @@ export default function App() {
   useEffect(() => {
     if (session && vista === 'master' && partida) {
       const fetchPersonajesPartida = async () => {
-        // En un futuro, si el jugador no le asigna partida_id, esto estará vacío
-        // pero por ahora buscamos personajes que estén en la partida
         const { data, error } = await supabase
           .from('personajes')
           .select('*')
@@ -221,7 +225,12 @@ export default function App() {
         if (data && !error) {
           const loaded = data.map(dbChar => {
             const def = crearPersonajePorDefecto();
-            return { ...def, ...(dbChar.datos_ficha || {}), id: dbChar.id };
+            return { 
+              ...def, 
+              ...(dbChar.datos_ficha || {}), 
+              partida_id: dbChar.partida_id || dbChar.datos_ficha?.partida_id || null,
+              id: dbChar.id 
+            };
           });
           setPersonajesPartida(loaded);
         }
@@ -266,7 +275,11 @@ export default function App() {
           nivel: personajeEditado.nivel || 1,
           trasfondo: personajeEditado.trasfondo,
           alineamiento: personajeEditado.alineamiento,
-          datos_ficha: personajeEditado
+          partida_id: personajeEditado.partida_id || null,
+          datos_ficha: {
+            ...personajeEditado,
+            partida_id: personajeEditado.partida_id || null
+          }
         }).eq('id', personajeEditado.id);
       }, 1000);
     }
@@ -341,21 +354,34 @@ export default function App() {
     const newPartidaId = partidaId || null;
     
     // Actualizamos localmente para el jugador
-    setPersonajes(prev => prev.map(p => p.id === personajeId ? { ...p, partida_id: newPartidaId } : p));
+    setPersonajes(prev => prev.map(p => {
+      if (p.id === personajeId) {
+        return { ...p, partida_id: newPartidaId };
+      }
+      return p;
+    }));
     
-    // Si somos DM y estamos expulsando, actualizamos también localmente la lista del DM
+    // Si somos DM y estamos desvinculando o expulsando, actualizamos también localmente la lista del DM
     if (!newPartidaId) {
       setPersonajesPartida(prev => prev.filter(p => p.id !== personajeId));
     }
     
     if (session) {
-      const { error } = await supabase.from('personajes').update({ partida_id: newPartidaId }).eq('id', personajeId);
+      const personajeObj = personajes.find(p => p.id === personajeId);
+      const fichaActualizada = personajeObj 
+        ? { ...personajeObj, partida_id: newPartidaId } 
+        : null;
+
+      const updatePayload = { partida_id: newPartidaId };
+      if (fichaActualizada) updatePayload.datos_ficha = fichaActualizada;
+
+      const { error } = await supabase.from('personajes').update(updatePayload).eq('id', personajeId);
       if (error) {
         console.error("Error al asignar partida:", error);
         alert("Error al actualizar el personaje: " + error.message);
       }
     }
-  }, [session]);
+  }, [session, personajes]);
 
   const manejarCrearPartida = async (nombre) => {
     if (!session) {
@@ -403,7 +429,8 @@ export default function App() {
 
   const manejarSalirDePartidaJugador = async (partidaId) => {
     setPersonajes(prev => prev.map(p => p.partida_id === partidaId ? { ...p, partida_id: null } : p));
-    setMisPartidasJugador(prev => prev.filter(p => p.id !== partidaId));
+    // Solo retirar de misPartidasJugador si no es una campaña propia del Master
+    setMisPartidasJugador(prev => prev.filter(p => p.id !== partidaId || (session && p.master_id === session.user.id)));
     if (session) {
       await supabase.from('personajes').update({ partida_id: null }).eq('partida_id', partidaId).eq('usuario_id', session.user.id);
       await supabase.from('miembros_partida').delete().eq('partida_id', partidaId).eq('usuario_id', session.user.id);
@@ -562,6 +589,8 @@ export default function App() {
           personajes={personajes}
           partida={partida}
           misPartidasJugador={misPartidasJugador}
+          misPartidasMaster={misPartidasMaster}
+          session={session}
           alSeleccionar={(p) => { setPersonajeActivo(p); setVista('ficha'); }}
           alCrear={() => setVista('creadorPersonaje')}
           alEliminar={manejarEliminarPersonaje}
