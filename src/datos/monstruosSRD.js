@@ -583,29 +583,6 @@ export const MONSTRUOS_SRD = [
     ],
   }),
   monstruoSRD({
-    id: 'srd-buho',
-    nombre: 'Búho',
-    tamano: 'Diminuto',
-    tipo: 'bestia',
-    alineamiento: 'No alineado',
-    clase_armadura: { valor: 11, notas: null },
-    puntos_vida: { promedio: 1, formula: '1d4-1' },
-    velocidad: { caminar: 5, volar: 60 },
-    caracteristicas: { fue: 3, des: 13, con: 8, int: 2, sab: 12, car: 7 },
-    habilidades: { percepcion: 3, sigilo: 3 },
-    sentidos: 'visión en la oscuridad 120 pies',
-    idiomas: '--',
-    nivel_desafio: 0,
-    px: 10,
-    habilidades_especiales: [
-      { nombre: 'Vuelo Ágil', descripcion: 'El búho no provoca ataques de oportunidad cuando sale del alcance de un enemigo volando.' },
-      { nombre: 'Vista y Oído Agudos', descripcion: 'Ventaja en tiradas de Percepción basadas en vista y oído.' }
-    ],
-    acciones: [
-      { nombre: 'Garras', descripcion: '+3 impactar. 1 cortante.' }
-    ],
-  }),
-  monstruoSRD({
     id: 'srd-cuervo',
     nombre: 'Cuervo',
     tamano: 'Diminuto',
@@ -647,75 +624,6 @@ export const MONSTRUOS_SRD = [
     ],
     acciones: [
       { nombre: 'Garras', descripcion: '+0 impactar. 1 cortante.' }
-    ],
-  }),
-  // -- MÁS MONSTRUOS CLÁSICOS --
-  monstruoSRD({
-    id: 'srd-goblin',
-    nombre: 'Trasgo (Goblin)',
-    tamano: 'Pequeño',
-    tipo: 'humanoide',
-    alineamiento: 'Neutral Malvado',
-    clase_armadura: { valor: 15, notas: 'armadura de cuero, escudo' },
-    puntos_vida: { promedio: 7, formula: '2d6' },
-    velocidad: { caminar: 30 },
-    caracteristicas: { fue: 8, des: 14, con: 10, int: 10, sab: 8, car: 8 },
-    habilidades: { sigilo: 6 },
-    sentidos: 'visión en la oscuridad 60 pies',
-    idiomas: 'Común, Goblin',
-    nivel_desafio: 0.25,
-    px: 50,
-    habilidades_especiales: [
-      { nombre: 'Escape Ágil', descripcion: 'El trasgo puede usar Destrabarse o Esconderse como acción adicional.' }
-    ],
-    acciones: [
-      { nombre: 'Cimitarra', descripcion: '+4 impactar. 5 (1d6+2) cortante.' },
-      { nombre: 'Arco Corto', descripcion: '+4 impactar. 5 (1d6+2) perforante. Alcance 80/320 pies.' }
-    ],
-  }),
-  monstruoSRD({
-    id: 'srd-orco',
-    nombre: 'Orco',
-    tamano: 'Mediano',
-    tipo: 'humanoide',
-    alineamiento: 'Caótico Malvado',
-    clase_armadura: { valor: 13, notas: 'armadura de pieles' },
-    puntos_vida: { promedio: 15, formula: '2d8+6' },
-    velocidad: { caminar: 30 },
-    caracteristicas: { fue: 16, des: 12, con: 16, int: 7, sab: 11, car: 10 },
-    habilidades: { intimidacion: 2 },
-    sentidos: 'visión en la oscuridad 60 pies',
-    idiomas: 'Común, Orco',
-    nivel_desafio: 0.5,
-    px: 100,
-    habilidades_especiales: [
-      { nombre: 'Agresivo', descripcion: 'Como acción adicional, el orco puede moverse hasta su velocidad hacia una criatura hostil que pueda ver.' }
-    ],
-    acciones: [
-      { nombre: 'Gran Hacha', descripcion: '+5 impactar. 9 (1d12+3) cortante.' },
-      { nombre: 'Jabalina', descripcion: '+5 impactar. 6 (1d6+3) perforante. Alcance 30/120 pies.' }
-    ],
-  }),
-  monstruoSRD({
-    id: 'srd-esqueleto',
-    nombre: 'Esqueleto',
-    tamano: 'Mediano',
-    tipo: 'no-muerto',
-    alineamiento: 'Legal Malvado',
-    clase_armadura: { valor: 13, notas: 'restos de armadura' },
-    puntos_vida: { promedio: 13, formula: '2d8+4' },
-    velocidad: { caminar: 30 },
-    caracteristicas: { fue: 10, des: 14, con: 15, int: 6, sab: 8, car: 5 },
-    damage_vulnerabilities: ['contundente'],
-    damage_immunities: ['veneno'],
-    condition_immunities: ['envenenado', 'exhausto'],
-    sentidos: 'visión en la oscuridad 60 pies',
-    idiomas: 'entiende los idiomas que hablaba en vida pero no puede hablar',
-    nivel_desafio: 0.25,
-    px: 50,
-    acciones: [
-      { nombre: 'Espada Corta', descripcion: '+4 impactar. 5 (1d6+2) perforante.' },
-      { nombre: 'Arco Corto', descripcion: '+4 impactar. 5 (1d6+2) perforante. Alcance 80/320 pies.' }
     ],
   }),
   monstruoSRD({

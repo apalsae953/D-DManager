@@ -40,7 +40,18 @@ export function useBestiario(session) {
     cargarMonstruos();
   }, [session]);
 
-  const todos = useMemo(() => [...MONSTRUOS_SRD, ...personalizados], [personalizados]);
+  const todos = useMemo(() => {
+    const mapa = new Map();
+    for (const m of MONSTRUOS_SRD) {
+      if (m && m.id) mapa.set(m.id, m);
+      else if (m && m.nombre) mapa.set(m.nombre.toLowerCase(), m);
+    }
+    for (const m of personalizados) {
+      if (m && m.id) mapa.set(m.id, m);
+      else if (m && m.nombre) mapa.set(m.nombre.toLowerCase(), m);
+    }
+    return Array.from(mapa.values());
+  }, [personalizados]);
 
   const monstruos = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
