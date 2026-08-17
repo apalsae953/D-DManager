@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Shield, Key, X } from 'lucide-react';
+import { Shield, Key, X, Trash2 } from 'lucide-react';
 
-export function ModalVincularPartida({ personaje, misPartidasJugador, onClose, onVincular, onUnirse }) {
+export function ModalVincularPartida({ personaje, misPartidasJugador = [], onClose, onVincular, onUnirse, onSalirPartida }) {
   const [codigo, setCodigo] = useState('');
   
   if (!personaje) return null;
@@ -30,16 +30,31 @@ export function ModalVincularPartida({ personaje, misPartidasJugador, onClose, o
               </label>
               <div className="grid gap-2">
                 {misPartidasJugador.map(partida => (
-                  <button
-                    key={partida.id}
-                    onClick={() => {
-                      onVincular(personaje.id, partida.id);
-                      onClose();
-                    }}
-                    className="flex items-center justify-between bg-dndoscuro-900/50 p-3 rounded-lg border border-white/5 hover:border-sangre-500 hover:bg-white/5 transition-all text-left"
-                  >
-                    <span className="font-cinzel text-stone-200">{partida.nombre}</span>
-                  </button>
+                  <div key={partida.id} className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        onVincular(personaje.id, partida.id);
+                        onClose();
+                      }}
+                      className="flex-1 flex items-center justify-between bg-dndoscuro-900/50 p-3 rounded-lg border border-white/5 hover:border-sangre-500 hover:bg-white/5 transition-all text-left"
+                    >
+                      <span className="font-cinzel text-stone-200">{partida.nombre}</span>
+                    </button>
+                    {onSalirPartida && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`¿Abandonar la campaña "${partida.nombre}" y desvincular tus personajes?`)) {
+                            onSalirPartida(partida.id);
+                          }
+                        }}
+                        className="p-3 rounded-lg bg-dndoscuro-900/50 hover:bg-red-900/40 text-stone-500 hover:text-red-400 border border-white/5 transition-colors"
+                        title="Abandonar campaña"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>

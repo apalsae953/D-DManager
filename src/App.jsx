@@ -99,22 +99,48 @@ export default function App() {
   useEffect(() => {
     if (session) {
       const fetchPartidas = async () => {
-        // Partidas como Master
-        const { data: dMaster } = await supabase
-          .from('partidas')
-          .select('*')
-          .eq('master_id', session.user.id);
-        if (dMaster) setMisPartidasMaster(dMaster);
+        try {
+          // Partidas como Master que existen
+          const { data: dMaster } = await supabase
+            .from('partidas')
+            .select('*')
+            .eq('master_id', session.user.id);
+          const validMaster = (dMaster || []).filter(p => Boolean(p && p.id && p.nombre));
+          setMisPartidasMaster(validMaster);
 
-        // Partidas como Jugador
-        const { data: dJugador } = await supabase
-          .from('miembros_partida')
-          .select('partidas(*)')
-          .eq('usuario_id', session.user.id);
-        if (dJugador) {
-          // Flatten the response
-          const partidasJ = dJugador.map(m => m.partidas).filter(p => p !== null);
-          setMisPartidasJugador(partidasJ);
+          // Partidas como Jugador (solo las que existen en la tabla partidas)
+          const { data: dJugador } = await supabase
+            .from('miembros_partida')
+            .select('id, partida_id, partidas!inner(*)')
+            .eq('usuario_id', session.user.id);
+
+          let validJugador = [];
+          if (dJugador) {
+            validJugador = dJugador
+              .map(m => m.partidas)
+              .filter(p => Boolean(p && p.id && p.nombre));
+          }
+
+          // Limpiar automáticamente en segundo plano filas huérfanas en miembros_partida
+          const { data: orphaned } = await supabase
+            .from('miembros_partida')
+            .select('id, partidas(id)')
+            .eq('usuario_id', session.user.id);
+          if (orphaned) {
+            const orphanedIds = orphaned.filter(o => !o.partidas || !o.partidas.id).map(o => o.id);
+            if (orphanedIds.length > 0) {
+              await supabase.from('miembros_partida').delete().in('id', orphanedIds);
+            }
+          }
+
+          // Unir y deduplicar por ID
+          const mapa = new Map();
+          [...validMaster, ...validJugador].forEach(p => {
+            if (p && p.id && p.nombre) mapa.set(p.id, p);
+          });
+          setMisPartidasJugador(Array.from(mapa.values()));
+        } catch (err) {
+          console.error("Error fetching partidas:", err);
         }
       };
       fetchPartidas();
@@ -349,13 +375,29 @@ export default function App() {
     setMisPartidasJugador(prev => prev.filter(p => p.id !== id));
 
     if (session) {
-      // Limpiar partida_id en los personajes
-      await supabase.from('personajes').update({ partida_id: null }).eq('partida_id', id);
-      const { error } = await supabase.from('partidas').delete().eq('id', id);
-      if (error) {
-        console.error("Error al eliminar partida:", error);
-        alert("Error al eliminar partida: " + error.message);
+      try {
+        // Limpiar partida_id en los personajes
+        await supabase.from('personajes').update({ partida_id: null }).eq('partida_id', id);
+        // Limpiar miembros_partida
+        await supabase.from('miembros_partida').delete().eq('partida_id', id);
+        // Eliminar partida
+        const { error } = await supabase.from('partidas').delete().eq('id', id);
+        if (error) {
+          console.error("Error al eliminar partida:", error);
+          alert("Error al eliminar partida: " + error.message);
+        }
+      } catch (err) {
+        console.error("Error al eliminar partida:", err);
       }
+    }
+  };
+
+  const manejarSalirDePartidaJugador = async (partidaId) => {
+    setPersonajes(prev => prev.map(p => p.partida_id === partidaId ? { ...p, partida_id: null } : p));
+    setMisPartidasJugador(prev => prev.filter(p => p.id !== partidaId));
+    if (session) {
+      await supabase.from('personajes').update({ partida_id: null }).eq('partida_id', partidaId).eq('usuario_id', session.user.id);
+      await supabase.from('miembros_partida').delete().eq('partida_id', partidaId).eq('usuario_id', session.user.id);
     }
   };
 
@@ -502,12 +544,13 @@ export default function App() {
         <ListaPersonajes
           personajes={personajes}
           partida={partida}
-          misPartidasJugador={[...misPartidasJugador, ...misPartidasMaster.filter(m => !misPartidasJugador.find(j => j.id === m.id))]}
+          misPartidasJugador={misPartidasJugador}
           alSeleccionar={(p) => { setPersonajeActivo(p); setVista('ficha'); }}
           alCrear={() => setVista('creadorPersonaje')}
           alEliminar={manejarEliminarPersonaje}
           onUnirsePartida={manejarUnirsePartida}
           onAsignarPartida={manejarAsignacionPartida}
+          onSalirPartidaJugador={manejarSalirDePartidaJugador}
         />
       )}
       

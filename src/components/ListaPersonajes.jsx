@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus, User, Shield, Swords, Trash2, Link } from 'lucide-react';
 import { ModalVincularPartida } from './ModalVincularPartida.jsx';
 
-export function ListaPersonajes({ personajes, misPartidasJugador = [], alSeleccionar, alCrear, alEliminar, onUnirsePartida, onAsignarPartida }) {
+export function ListaPersonajes({ personajes, misPartidasJugador = [], alSeleccionar, alCrear, alEliminar, onUnirsePartida, onAsignarPartida, onSalirPartidaJugador }) {
   const [personajeAVincular, setPersonajeAVincular] = useState(null);
 
   return (
@@ -108,6 +108,7 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
         onClose={() => setPersonajeAVincular(null)}
         onVincular={onAsignarPartida}
         onUnirse={onUnirsePartida}
+        onSalirPartida={onSalirPartidaJugador}
       />
     </div>
   );
