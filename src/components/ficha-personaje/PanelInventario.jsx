@@ -13,12 +13,103 @@ const CATEGORIAS_FILTRO = [
 
 const TIPOS_OBJETO = ['Arma', 'Armadura', 'Munición', 'Equipo', 'Herramienta', 'Paquete', 'Poción', 'Montura', 'Vehículo', 'Otro'];
 
-function clasificarTipo(tipo = '') {
-  const t = (tipo || '').toLowerCase();
-  if (t.includes('arma') || t.includes('espada') || t.includes('arco') || t.includes('daga') || t.includes('hacha') || t.includes('maza')) return 'armas';
-  if (t.includes('armadura') || t.includes('escudo') || t.includes('cota') || t.includes('cuero') || t.includes('placas')) return 'armaduras';
-  if (t.includes('poción') || t.includes('pocion') || t.includes('munición') || t.includes('municion') || t.includes('consumible') || t.includes('comida') || t.includes('ungüento')) return 'pociones';
-  if (t.includes('herramienta') || t.includes('instrumento') || t.includes('kit') || t.includes('útil')) return 'herramientas';
+function clasificarObjeto(item) {
+  if (!item) return 'equipo';
+  const tipo = (item.tipo || '').toLowerCase().trim();
+  const subtipo = (item.subtipo || '').toLowerCase().trim();
+  const nombre = (item.nombre || '').toLowerCase().trim();
+
+  // 1. Armaduras y Escudos (Debe evaluarse ANTES que armas para evitar que "armadura" coincida con "arma")
+  if (
+    tipo.includes('armadura') || 
+    tipo.includes('escudo') || 
+    subtipo.includes('armadura') || 
+    subtipo.includes('escudo') ||
+    nombre.includes('cota de') ||
+    nombre.includes('armadura') ||
+    nombre.includes('camisote') ||
+    nombre.includes('coraza') ||
+    nombre.includes('cuero tachonado') ||
+    nombre.includes('placas') ||
+    nombre.includes('loriga') ||
+    nombre.includes('mallas') ||
+    nombre.includes('escudo')
+  ) {
+    return 'armaduras';
+  }
+
+  // 2. Armas
+  if (
+    tipo === 'arma' ||
+    tipo.startsWith('arma') ||
+    tipo.includes('marcial') ||
+    tipo.includes('simple') ||
+    tipo.includes('distancia') ||
+    tipo.includes('cuerpo a cuerpo') ||
+    subtipo.includes('arma') ||
+    nombre.includes('espada') ||
+    nombre.includes('arco') ||
+    nombre.includes('daga') ||
+    nombre.includes('hacha') ||
+    nombre.includes('maza') ||
+    nombre.includes('lanza') ||
+    nombre.includes('martillo') ||
+    nombre.includes('bastón') ||
+    nombre.includes('baston') ||
+    nombre.includes('ballesta') ||
+    nombre.includes('cimitarra') ||
+    nombre.includes('alabarda') ||
+    nombre.includes('tridente') ||
+    nombre.includes('mangual') ||
+    nombre.includes('estoque') ||
+    nombre.includes('guadaña') ||
+    nombre.includes('garrote') ||
+    nombre.includes('mangual') ||
+    nombre.includes('estoque') ||
+    nombre.includes('dardo') ||
+    nombre.includes('jabalina') ||
+    nombre.includes('clava') ||
+    nombre.includes('honda')
+  ) {
+    return 'armas';
+  }
+
+  // 3. Consumibles, Pociones, Munición
+  if (
+    tipo.includes('poción') ||
+    tipo.includes('pocion') ||
+    tipo.includes('munición') ||
+    tipo.includes('municion') ||
+    tipo.includes('comida') ||
+    tipo.includes('racion') ||
+    tipo.includes('ración') ||
+    tipo.includes('pergamino') ||
+    nombre.includes('poción') ||
+    nombre.includes('pocion') ||
+    nombre.includes('flecha') ||
+    nombre.includes('virote') ||
+    nombre.includes('bala') ||
+    nombre.includes('antídoto') ||
+    nombre.includes('antidoto') ||
+    nombre.includes('ungüento')
+  ) {
+    return 'pociones';
+  }
+
+  // 4. Herramientas, Kits, Instrumentos
+  if (
+    tipo.includes('herramienta') ||
+    tipo.includes('instrumento') ||
+    tipo.includes('kit') ||
+    tipo.includes('útil') ||
+    nombre.includes('herramientas') ||
+    nombre.includes('instrumento') ||
+    nombre.includes('kit')
+  ) {
+    return 'herramientas';
+  }
+
+  // 5. Todo lo demás es Equipo / Varios
   return 'equipo';
 }
 
@@ -53,7 +144,7 @@ export function PanelInventario({ personaje, actualizarCampo }) {
 
       // Filtro de categoría
       if (filtroCategoria === 'todos') return true;
-      const cat = clasificarTipo(item.tipo);
+      const cat = clasificarObjeto(item);
       return cat === filtroCategoria;
     });
   }, [equipoActual, busquedaInventario, filtroCategoria]);
@@ -62,7 +153,7 @@ export function PanelInventario({ personaje, actualizarCampo }) {
   const conteos = useMemo(() => {
     const counts = { todos: equipoActual.length, armas: 0, armaduras: 0, pociones: 0, herramientas: 0, equipo: 0 };
     equipoActual.forEach(item => {
-      const c = clasificarTipo(item.tipo);
+      const c = clasificarObjeto(item);
       if (counts[c] !== undefined) counts[c]++;
       else counts.equipo++;
     });
@@ -78,7 +169,7 @@ export function PanelInventario({ personaje, actualizarCampo }) {
       
       if (!coincideTexto) return false;
       if (filtroCategoria === 'todos') return true;
-      return clasificarTipo(item.tipo) === filtroCategoria;
+      return clasificarObjeto(item) === filtroCategoria;
     }).slice(0, 30);
   }, [busquedaManual, filtroCategoria]);
 
@@ -122,8 +213,8 @@ export function PanelInventario({ personaje, actualizarCampo }) {
     actualizarCampo('equipo', nuevoEquipo);
   };
 
-  const IconoPorTipo = (tipo) => {
-    const cat = clasificarTipo(tipo);
+  const IconoPorTipo = (item) => {
+    const cat = typeof item === 'string' ? clasificarObjeto({ tipo: item }) : clasificarObjeto(item);
     if (cat === 'armas') return <Sword className="w-4 h-4 text-red-400 flex-shrink-0" />;
     if (cat === 'armaduras') return <Shield className="w-4 h-4 text-indigo-400 flex-shrink-0" />;
     if (cat === 'pociones') return <FlaskConical className="w-4 h-4 text-emerald-400 flex-shrink-0" />;
@@ -422,11 +513,8 @@ export function PanelInventario({ personaje, actualizarCampo }) {
 function ObjetoItem({ item, index, accion, IconoPorTipo, esBuscador, onActualizar, onMover }) {
   const [expandido, setExpandido] = useState(false);
   
-  const esArmaOArmadura = item.tipo && (
-    item.tipo.toLowerCase().includes('arma') || 
-    item.tipo.toLowerCase().includes('armadura') || 
-    item.tipo.toLowerCase().includes('escudo')
-  );
+  const cat = clasificarObjeto(item);
+  const esArmaOArmadura = cat === 'armas' || cat === 'armaduras';
 
   return (
     <div 
@@ -496,7 +584,7 @@ function ObjetoItem({ item, index, accion, IconoPorTipo, esBuscador, onActualiza
             </button>
           )}
 
-          {IconoPorTipo?.(item.tipo)}
+          {IconoPorTipo?.(item)}
 
           <div className="min-w-0 flex-1">
             <h4 className="font-bold text-stone-100 text-xs sm:text-sm truncate">
