@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { User, Sparkles, Swords, BookOpen, Dices, Save, Wand2, ChevronLeft, Shield, Package, AlignLeft, Check, RefreshCw, CheckCircle2, Scroll } from 'lucide-react';
 import { useFichaPersonaje } from '../../hooks/useFichaPersonaje.js';
 import { PanelDatosGenerales } from './PanelDatosGenerales.jsx';
@@ -224,11 +225,11 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
         </div>
       </main>
 
-      {entradaNivel && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-sm rounded-xl border border-amber-500/50 bg-[#111111] p-6 shadow-2xl shadow-amber-900/20">
+      {entradaNivel && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in text-stone-200">
+          <div className="w-full max-w-sm rounded-2xl border border-amber-500/50 bg-dndoscuro-900 p-6 shadow-2xl animate-scale-in">
             <div className="mb-4 text-center">
-              <h2 className="font-cinzel text-xl font-bold text-amber-500 drop-shadow">
+              <h2 className="font-cinzel text-xl font-bold text-amber-400 drop-shadow">
                 ¡Sube a Nivel {personaje.nivel + 1}!
               </h2>
               <p className="mt-2 text-sm text-stone-300">
@@ -242,7 +243,7 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
                   type="number"
                   value={entradaNivel.valor}
                   onChange={(evento) => setEntradaNivel({ valor: Number(evento.target.value) })}
-                  className="w-24 rounded-lg border border-amber-500/30 bg-dndoscuro-900 px-3 py-2 text-center text-xl font-bold text-amber-100"
+                  className="w-24 rounded-lg border border-amber-500/30 bg-dndoscuro-950 px-3 py-2 text-center text-xl font-bold text-amber-100"
                 />
                 {modoSubida === 'tirada' && (
                   <button
@@ -270,13 +271,14 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal emergente para elegir Subclase */}
-      {mostrarModalSubclase && claseSeleccionada?.subclases && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md rounded-xl border border-sangre-600 bg-[#111111] p-6 shadow-2xl shadow-sangre-900/50">
+      {mostrarModalSubclase && claseSeleccionada?.subclases && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in text-stone-200">
+          <div className="w-full max-w-md rounded-2xl border border-sangre-600/60 bg-dndoscuro-900 p-6 shadow-2xl animate-scale-in">
             <div className="mb-6 text-center">
               <h2 className="font-cinzel text-2xl font-bold text-sangre-100 drop-shadow">
                 ¡Nivel de Especialización Alcanzado!
@@ -291,7 +293,7 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
                 <button
                   key={sub}
                   onClick={() => elegirSubclaseModal(sub)}
-                  className="rounded-lg border border-stone-600 bg-[#151515] p-3 text-left font-bold text-stone-200 transition-all hover:border-sangre-500 hover:bg-[#1a1a1a] hover:text-white"
+                  className="rounded-xl border border-white/10 bg-dndoscuro-950/70 p-3.5 text-left font-bold text-stone-200 transition-all hover:border-sangre-500 hover:bg-sangre-950/40 hover:text-white"
                 >
                   {sub}
                 </button>
@@ -300,14 +302,15 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
 
             <div className="mt-6 flex justify-end">
               <button 
-                onClick={() => setMostrarModalSubclase(false)}
-                className="text-xs text-stone-500 hover:text-stone-300"
+                onClick={() => setMostrarModalSubclase(false)} 
+                className="text-xs text-stone-400 hover:text-stone-200 underline"
               >
                 Elegir más tarde
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <ModalDados abierto={modalDadosAbierto} alCerrar={() => setModalDadosAbierto(false)} />

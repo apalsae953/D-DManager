@@ -188,6 +188,7 @@ export function PanelMaster({ session, partida, personajes, misPartidasMaster, o
             alCerrar={() => setModalAgregarAbierto(false)}
             resumenesPersonajes={resumenesPersonajes}
             participantesActuales={participantes}
+            monstruosDisponibles={todosLosMonstruos}
             onAgregar={agregarParticipante}
           />
         </>

@@ -103,9 +103,16 @@ export default function App() {
           // Partidas como Master que existen
           const { data: dMaster } = await supabase
             .from('partidas')
-            .select('*')
-            .eq('master_id', session.user.id);
-          const validMaster = (dMaster || []).filter(p => Boolean(p && p.id && p.nombre));
+          const validMaster = (dMaster || []).filter(p => Boolean(p && p.id && p.nombre)).map(p => {
+            let bitacoraData = p.bitacora;
+            if (!bitacoraData) {
+              try {
+                const stored = localStorage.getItem(`dnd_bitacora_${p.id}`);
+                if (stored) bitacoraData = JSON.parse(stored);
+              } catch (e) {}
+            }
+            return { ...p, bitacora: bitacoraData || { sesiones: [], combates: [] } };
+          });
           setMisPartidasMaster(validMaster);
 
           // Partidas como Jugador (solo las que existen en la tabla partidas)
@@ -584,7 +591,20 @@ export default function App() {
           session={session}
           partida={partida}
           misPartidasMaster={misPartidasMaster}
-          onSeleccionarPartida={(p) => setPartida(p)}
+          onSeleccionarPartida={(p) => {
+            if (!p) {
+              setPartida(null);
+              return;
+            }
+            let b = p.bitacora;
+            if (!b) {
+              try {
+                const stored = localStorage.getItem(`dnd_bitacora_${p.id}`);
+                if (stored) b = JSON.parse(stored);
+              } catch (e) {}
+            }
+            setPartida({ ...p, bitacora: b || { sesiones: [], combates: [] } });
+          }}
           personajes={personajesPartida}
           onCrearPartida={manejarCrearPartida}
           onUnirsePartida={manejarUnirsePartida}

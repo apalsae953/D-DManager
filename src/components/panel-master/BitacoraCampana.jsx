@@ -1,10 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { BookOpen, Swords, Plus, Trash2, Calendar, Award, Users, Skull, Sparkles, Pencil, X } from 'lucide-react';
+import { BookOpen, Swords, Plus, Trash2, Calendar, Award, Users, Skull, Sparkles, Pencil, X, Edit3 } from 'lucide-react';
 
 export function BitacoraCampana({ partida, onGuardarBitacora }) {
-  // Estructura de bitácora
-  const bitacora = partida?.bitacora || { sesiones: [], combates: [] };
+  const obtenerBitacoraInicial = () => {
+    if (partida?.bitacora && (partida.bitacora.sesiones?.length > 0 || partida.bitacora.combates?.length > 0)) {
+      return partida.bitacora;
+    }
+    if (partida?.id) {
+      try {
+        const stored = localStorage.getItem(`dnd_bitacora_${partida.id}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && (parsed.sesiones || parsed.combates)) return parsed;
+        }
+      } catch (e) {
+        console.error("Error al leer bitacora de localStorage:", e);
+      }
+    }
+    return { sesiones: [], combates: [] };
+  };
+
+  const [bitacora, setBitacora] = useState(obtenerBitacoraInicial);
+
+  useEffect(() => {
+    setBitacora(obtenerBitacoraInicial());
+  }, [partida?.id, partida?.bitacora]);
+
   const sesiones = bitacora.sesiones || [];
   const combates = bitacora.combates || [];
 
@@ -31,9 +53,22 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
     rondas: 3,
     enemigos: '',
     pxTotal: 0,
-    resultado: 'Victoria',
+    tipoResultado: 'Victoria',
+    resultadoPersonalizado: '',
     notas: '',
   });
+
+  const actualizarYGuardar = (nuevaBitacora) => {
+    setBitacora(nuevaBitacora);
+    if (partida?.id) {
+      try {
+        localStorage.setItem(`dnd_bitacora_${partida.id}`, JSON.stringify(nuevaBitacora));
+      } catch (e) {
+        console.error("Error al guardar en localStorage:", e);
+      }
+    }
+    onGuardarBitacora?.(nuevaBitacora);
+  };
 
   const abrirCrearSesion = () => {
     setSesionEditando(null);
@@ -78,44 +113,59 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
     }
 
     const nuevaBitacora = { ...bitacora, sesiones: nuevasSesiones };
-    onGuardarBitacora?.(nuevaBitacora);
+    actualizarYGuardar(nuevaBitacora);
     setModalSesionAbierto(false);
   };
 
   const eliminarSesion = (id) => {
     if (!window.confirm('¿Seguro que deseas eliminar esta entrada de sesión?')) return;
     const nuevasSesiones = sesiones.filter(s => s.id !== id);
-    onGuardarBitacora?.({ ...bitacora, sesiones: nuevasSesiones });
+    actualizarYGuardar({ ...bitacora, sesiones: nuevasSesiones });
   };
 
-  const guardarCombate = (e) => {
-    e.preventDefault();
-    if (!formCombate.nombreEncuentro.trim()) return;
-
-    const nuevoCombate = {
-      id: `combate-${Date.now()}`,
-      ...formCombate,
-      creado_en: new Date().toISOString(),
-    };
-
-    const nuevosCombates = [nuevoCombate, ...combates];
-    onGuardarBitacora?.({ ...bitacora, combates: nuevosCombates });
-    setModalCombateAbierto(false);
+  const abrirCrearCombate = () => {
     setFormCombate({
       nombreEncuentro: '',
       fecha: new Date().toISOString().split('T')[0],
       rondas: 3,
       enemigos: '',
       pxTotal: 0,
-      resultado: 'Victoria',
+      tipoResultado: 'Victoria',
+      resultadoPersonalizado: '',
       notas: '',
     });
+    setModalCombateAbierto(true);
+  };
+
+  const guardarCombate = (e) => {
+    e.preventDefault();
+    if (!formCombate.nombreEncuentro.trim()) return;
+
+    const resultadoFinal = formCombate.tipoResultado === 'Personalizado'
+      ? (formCombate.resultadoPersonalizado.trim() || 'Personalizado')
+      : formCombate.tipoResultado;
+
+    const nuevoCombate = {
+      id: `combate-${Date.now()}`,
+      nombreEncuentro: formCombate.nombreEncuentro.trim(),
+      fecha: formCombate.fecha,
+      rondas: formCombate.rondas,
+      enemigos: formCombate.enemigos,
+      pxTotal: formCombate.pxTotal,
+      resultado: resultadoFinal,
+      notas: formCombate.notas,
+      creado_en: new Date().toISOString(),
+    };
+
+    const nuevosCombates = [nuevoCombate, ...combates];
+    actualizarYGuardar({ ...bitacora, combates: nuevosCombates });
+    setModalCombateAbierto(false);
   };
 
   const eliminarCombate = (id) => {
     if (!window.confirm('¿Seguro que deseas eliminar este registro de combate?')) return;
     const nuevosCombates = combates.filter(c => c.id !== id);
-    onGuardarBitacora?.({ ...bitacora, combates: nuevosCombates });
+    actualizarYGuardar({ ...bitacora, combates: nuevosCombates });
   };
 
   return (
@@ -155,7 +205,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
             </button>
           ) : (
             <button
-              onClick={() => setModalCombateAbierto(true)}
+              onClick={abrirCrearCombate}
               className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm py-2 px-4 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" /> Registrar Combate
@@ -263,7 +313,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
               <p className="text-stone-500 text-xs sm:text-sm max-w-md mx-auto">
                 Registra los encuentros librados, los monstruos derrotados, la duración en rondas y la experiencia repartida.
               </p>
-              <button onClick={() => setModalCombateAbierto(true)} className="btn-secondary mt-2">
+              <button onClick={abrirCrearCombate} className="btn-secondary mt-2">
                 Registrar Primer Combate
               </button>
             </div>
@@ -273,7 +323,13 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
                 <div key={c.id} className="glass-panel p-4 rounded-xl border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="space-y-1.5 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${c.resultado === 'Victoria' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/40' : 'bg-red-950 text-red-400 border border-red-800/40'}`}>
+                      <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded border ${
+                        c.resultado === 'Victoria' 
+                          ? 'bg-emerald-950/80 text-emerald-400 border-emerald-700/50' 
+                          : c.resultado === 'Retirada' || c.resultado === 'Derrota / TPK'
+                            ? 'bg-red-950/80 text-red-400 border-red-700/50'
+                            : 'bg-amber-950/80 text-amber-300 border-amber-700/50'
+                      }`}>
                         {c.resultado || 'Victoria'}
                       </span>
                       <h4 className="font-cinzel font-bold text-stone-100 text-base">{c.nombreEncuentro}</h4>
@@ -422,7 +478,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
         document.body
       )}
 
-      {/* MODAL REGISTRAR COMBATE */}
+      {/* MODAL REGISTRAR COMBATE CON OPCIÓN PERSONALIZADA */}
       {modalCombateAbierto && createPortal(
         <div 
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in text-stone-200"
@@ -500,18 +556,36 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
                 />
               </div>
 
+              {/* Resultado del Combate con Opción Personalizada */}
               <div>
-                <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Resultado</label>
+                <label className="block text-xs font-bold uppercase text-stone-400 mb-1">Resultado del Combate</label>
                 <select
-                  value={formCombate.resultado}
-                  onChange={(e) => setFormCombate({ ...formCombate, resultado: e.target.value })}
-                  className="w-full input-dnd py-2"
+                  value={formCombate.tipoResultado}
+                  onChange={(e) => setFormCombate({ ...formCombate, tipoResultado: e.target.value })}
+                  className="w-full input-dnd py-2 font-bold"
                 >
                   <option value="Victoria">Victoria de los Héroes</option>
                   <option value="Retirada">Retirada / Huida</option>
                   <option value="Derrota / TPK">Derrota / TPK</option>
-                  <option value="Negociación">Pacto / Negociación</option>
+                  <option value="Pacto / Negociación">Pacto / Negociación</option>
+                  <option value="Personalizado">Otro (Personalizado por el DM)...</option>
                 </select>
+
+                {formCombate.tipoResultado === 'Personalizado' && (
+                  <div className="mt-2 animate-fade-in">
+                    <label className="block text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <Edit3 className="w-3.5 h-3.5" /> Escribe tu resultado personalizado:
+                    </label>
+                    <input
+                      value={formCombate.resultadoPersonalizado}
+                      onChange={(e) => setFormCombate({ ...formCombate, resultadoPersonalizado: e.target.value })}
+                      placeholder="Ej. Capturados, Interrumpido por un dragón, Emboscada fallida..."
+                      className="w-full input-dnd py-2 font-bold text-amber-200 border-amber-600/50"
+                      autoFocus
+                      required
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
