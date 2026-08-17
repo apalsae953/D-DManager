@@ -18,14 +18,18 @@
     @apply font-cinzel tracking-wider text-[#f6d9db];
   }
 
-  /* Eliminar flechas/spinners por defecto de inputs de número para evitar recortes */
+  /* Flechas/spinners para subir y bajar números con separación adecuada */
   input[type=number]::-webkit-inner-spin-button, 
   input[type=number]::-webkit-outer-spin-button { 
-    -webkit-appearance: none; 
-    margin: 0; 
+    opacity: 0.75;
+    cursor: pointer;
+    margin-left: 2px;
+  }
+  input[type=number]::-webkit-inner-spin-button:hover {
+    opacity: 1;
   }
   input[type=number] {
-    -moz-appearance: textfield;
+    -moz-appearance: number-input;
   }
 }
 
