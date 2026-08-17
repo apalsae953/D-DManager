@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BookOpen, Swords, Plus, Trash2, Calendar, Award, Users, Skull, Sparkles, Pencil, ChevronRight, FileText } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { BookOpen, Swords, Plus, Trash2, Calendar, Award, Users, Skull, Sparkles, Pencil, X } from 'lucide-react';
 
 export function BitacoraCampana({ partida, onGuardarBitacora }) {
   // Estructura de bitácora
@@ -310,14 +311,24 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
       )}
 
       {/* MODAL CREAR / EDITAR SESIÓN */}
-      {modalSesionAbierto && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-dndoscuro-900 border border-sangre-600/50 p-6 shadow-2xl space-y-4 animate-scale-in text-stone-200">
+      {modalSesionAbierto && createPortal(
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in text-stone-200"
+          onClick={() => setModalSesionAbierto(false)}
+        >
+          <div 
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-dndoscuro-900 border border-sangre-600/50 p-6 shadow-2xl space-y-4 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h3 className="text-xl font-cinzel font-bold text-sangre-100">
                 {sesionEditando ? 'Editar Entrada de Sesión' : 'Nueva Entrada de Sesión'}
               </h3>
-              <button onClick={() => setModalSesionAbierto(false)} className="p-1 rounded text-stone-400 hover:text-white">
+              <button 
+                type="button"
+                onClick={() => setModalSesionAbierto(false)} 
+                className="p-1 rounded-full text-stone-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -332,6 +343,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
                     placeholder="Ej. Sesión 4: La Emboscada en el Pantano"
                     className="w-full input-dnd py-2"
                     required
+                    autoFocus
                   />
                 </div>
                 <div>
@@ -390,27 +402,45 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button type="button" onClick={() => setModalSesionAbierto(false)} className="btn-secondary px-5 py-2">
+                <button 
+                  type="button" 
+                  onClick={() => setModalSesionAbierto(false)} 
+                  className="btn-secondary px-5 py-2"
+                >
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary px-6 py-2">
+                <button 
+                  type="submit" 
+                  className="btn-primary px-6 py-2"
+                >
                   Guardar Entrada
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL REGISTRAR COMBATE */}
-      {modalCombateAbierto && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-dndoscuro-900 border border-sangre-600/50 p-6 shadow-2xl space-y-4 animate-scale-in text-stone-200">
+      {modalCombateAbierto && createPortal(
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in text-stone-200"
+          onClick={() => setModalCombateAbierto(false)}
+        >
+          <div 
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-dndoscuro-900 border border-sangre-600/50 p-6 shadow-2xl space-y-4 animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h3 className="text-xl font-cinzel font-bold text-sangre-100 flex items-center gap-2">
                 <Swords className="w-5 h-5 text-sangre-500" /> Registrar Combate
               </h3>
-              <button onClick={() => setModalCombateAbierto(false)} className="p-1 rounded text-stone-400 hover:text-white">
+              <button 
+                type="button"
+                onClick={() => setModalCombateAbierto(false)} 
+                className="p-1 rounded-full text-stone-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -445,7 +475,7 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
                     min={1}
                     value={formCombate.rondas}
                     onChange={(e) => setFormCombate({ ...formCombate, rondas: Number(e.target.value) })}
-                    className="w-full input-dnd py-2 text-center"
+                    className="w-full input-dnd py-2 text-center font-bold"
                   />
                 </div>
                 <div>
@@ -496,16 +526,24 @@ export function BitacoraCampana({ partida, onGuardarBitacora }) {
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
-                <button type="button" onClick={() => setModalCombateAbierto(false)} className="btn-secondary px-5 py-2">
+                <button 
+                  type="button" 
+                  onClick={() => setModalCombateAbierto(false)} 
+                  className="btn-secondary px-5 py-2"
+                >
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary px-6 py-2">
+                <button 
+                  type="submit" 
+                  className="btn-primary px-6 py-2"
+                >
                   Guardar Combate
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
