@@ -11,6 +11,7 @@ import { PanelInventario } from './PanelInventario.jsx';
 import { PanelRasgos } from './PanelRasgos.jsx';
 import { ModalDados } from './ModalDados.jsx';
 import { MiniBarraXP } from './MiniBarraXP.jsx';
+import { ModalFotoPersonaje } from './ModalFotoPersonaje.jsx';
 import { obtenerDadoGolpe } from '../../motor/index.js';
 import { useDatosPersonalizados } from '../../hooks/useDatosPersonalizados.js';
 
@@ -28,6 +29,7 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
   const { clases } = useDatosPersonalizados();
   const [pestaniaActiva, setPestaniaActiva] = useState('combate');
   const [modalDadosAbierto, setModalDadosAbierto] = useState(false);
+  const [modalFotoAbierto, setModalFotoAbierto] = useState(false);
   const [estadoGuardado, setEstadoGuardado] = useState('guardado');
   const [entradaNivel, setEntradaNivel] = useState(null);
   const [mostrarModalSubclase, setMostrarModalSubclase] = useState(false);
@@ -87,36 +89,27 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
           <button 
             onClick={onVolver}
             className="flex items-center justify-center p-2 rounded-full bg-dndoscuro-400 hover:bg-white/10 text-stone-400 hover:text-white transition-colors"
+            title="Volver"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-sangre-600 shadow-neon group cursor-pointer">
+          
+          {/* Avatar con clic para abrir modal ampliado */}
+          <div 
+            onClick={() => setModalFotoAbierto(true)}
+            className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-sangre-600 shadow-neon group cursor-pointer hover:scale-105 transition-transform"
+            title="Ver o editar retrato"
+          >
             {personaje.avatar ? (
               <img src={personaje.avatar} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-dndoscuro-300 flex items-center justify-center"><User className="text-stone-500" /></div>
             )}
-            {!modoLectura && (
-              <>
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <span className="text-[10px] text-white font-bold">Cambiar</span>
-                </div>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (ev) => actualizarCampo('avatar', ev.target.result);
-                      reader.readAsDataURL(file);
-                    }
-                  }} 
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                />
-              </>
-            )}
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-[10px] text-white font-bold">Ver</span>
+            </div>
           </div>
+
           <div>
             <h1 className="text-3xl font-cinzel font-bold text-sangre-100 drop-shadow-md flex items-center gap-3">
               {personaje.nombre || 'Héroe Anónimo'}
@@ -318,6 +311,22 @@ export function FichaPersonaje({ personajeInicial, onGuardar, onVolver, modoLect
       )}
 
       <ModalDados abierto={modalDadosAbierto} alCerrar={() => setModalDadosAbierto(false)} />
+
+      <ModalFotoPersonaje
+        abierto={modalFotoAbierto}
+        alCerrar={() => setModalFotoAbierto(false)}
+        avatar={personaje.avatar}
+        nombrePersonaje={personaje.nombre}
+        clasePersonaje={personaje.clase}
+        nivelPersonaje={personaje.nivel}
+        onCambiarFoto={(nuevaFoto) => {
+          actualizarCampo('avatar', nuevaFoto);
+        }}
+        onQuitarFoto={() => {
+          actualizarCampo('avatar', null);
+        }}
+        modoLectura={modoLectura}
+      />
     </div>
   );
 }

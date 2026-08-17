@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { X, Shield, Heart, Wind, Eye, Sparkles, Sword, AlertTriangle } from 'lucide-react';
 import { modificadorCaracteristica } from '../../motor/caracteristicas.js';
 
@@ -22,9 +23,9 @@ export function ModalDetalleMonstruo({ monstruo, alCerrar, onAgregarAIniciativa 
   const hpFormula = typeof monstruo.puntos_vida === 'object' ? monstruo.puntos_vida?.formula : null;
   const vel = typeof monstruo.velocidad === 'object' ? Object.entries(monstruo.velocidad).map(([k, v]) => `${k === 'caminar' ? '' : k + ' '}${v} pies`).join(', ') : (monstruo.velocidad || '30 pies');
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-sangre-800/60 bg-dndoscuro-600 shadow-2xl p-4 sm:p-6 text-stone-300">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in" onClick={alCerrar}>
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-sangre-800/60 bg-dndoscuro-600 shadow-2xl p-4 sm:p-6 text-stone-300 animate-scale-in" onClick={(e) => e.stopPropagation()}>
         
         {/* Botón cerrar */}
         <button
@@ -181,6 +182,7 @@ export function ModalDetalleMonstruo({ monstruo, alCerrar, onAgregarAIniciativa 
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

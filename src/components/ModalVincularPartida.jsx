@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Shield, Key, X, Trash2 } from 'lucide-react';
 
 export function ModalVincularPartida({ personaje, misPartidasJugador = [], onClose, onVincular, onUnirse, onSalirPartida }) {
@@ -6,12 +7,12 @@ export function ModalVincularPartida({ personaje, misPartidasJugador = [], onClo
   
   if (!personaje) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="w-full max-w-md rounded-xl border border-white/10 bg-dndoscuro-800 p-6 shadow-2xl relative">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl border border-sangre-600/40 bg-dndoscuro-900 p-6 shadow-2xl relative text-stone-200 animate-scale-in" onClick={(e) => e.stopPropagation()}>
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-stone-500 hover:text-white transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full text-stone-400 hover:text-white hover:bg-white/10 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -36,7 +37,7 @@ export function ModalVincularPartida({ personaje, misPartidasJugador = [], onClo
                         onVincular(personaje.id, partida.id);
                         onClose();
                       }}
-                      className="flex-1 flex items-center justify-between bg-dndoscuro-900/50 p-3 rounded-lg border border-white/5 hover:border-sangre-500 hover:bg-white/5 transition-all text-left"
+                      className="flex-1 flex items-center justify-between bg-dndoscuro-950/60 p-3 rounded-lg border border-white/5 hover:border-sangre-500 hover:bg-white/5 transition-all text-left"
                     >
                       <span className="font-cinzel text-stone-200">{partida.nombre}</span>
                     </button>
@@ -48,7 +49,7 @@ export function ModalVincularPartida({ personaje, misPartidasJugador = [], onClo
                             onSalirPartida(partida.id);
                           }
                         }}
-                        className="p-3 rounded-lg bg-dndoscuro-900/50 hover:bg-red-900/40 text-stone-500 hover:text-red-400 border border-white/5 transition-colors"
+                        className="p-3 rounded-lg bg-dndoscuro-950/60 hover:bg-red-900/40 text-stone-500 hover:text-red-400 border border-white/5 transition-colors"
                         title="Abandonar campaña"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -98,6 +99,7 @@ export function ModalVincularPartida({ personaje, misPartidasJugador = [], onClo
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
