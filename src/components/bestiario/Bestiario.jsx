@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Plus } from 'lucide-react';
 import { TarjetaMonstruo } from './TarjetaMonstruo.jsx';
 import { ModalCreadorMonstruo } from './ModalCreadorMonstruo.jsx';
@@ -20,11 +20,19 @@ export function Bestiario({ monstruos, busqueda, setBusqueda, onCrearMonstruo, o
     setPaginaActiva(1);
   };
 
-  const monstruosFiltradosTab = (monstruos || []).filter(m => {
-    if (filtroTipo === 'bestias') return m.tipo === 'bestia';
-    if (filtroTipo === 'monstruos') return m.tipo !== 'bestia';
-    return true;
-  });
+  const monstruosFiltradosTab = useMemo(() => {
+    const vistos = new Set();
+    return (monstruos || []).filter(m => {
+      if (!m || !m.nombre) return false;
+      const clave = m.nombre.trim().toLowerCase();
+      if (vistos.has(clave)) return false;
+      vistos.add(clave);
+
+      if (filtroTipo === 'bestias') return m.tipo?.toLowerCase() === 'bestia';
+      if (filtroTipo === 'monstruos') return m.tipo?.toLowerCase() !== 'bestia';
+      return true;
+    });
+  }, [monstruos, filtroTipo]);
 
   const indiceUltimo = paginaActiva * elementosPorPagina;
   const indicePrimero = indiceUltimo - elementosPorPagina;

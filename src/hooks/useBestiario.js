@@ -14,7 +14,15 @@ export function useBestiario(session) {
         // Fallback a localStorage si no hay sesión
         try {
           const saved = localStorage.getItem('dnd_bestiario_personalizados');
-          if (saved) setPersonalizados(JSON.parse(saved));
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            // Deduplicar lo guardado en localStorage
+            const mapLoc = new Map();
+            parsed.forEach(m => {
+              if (m && m.nombre) mapLoc.set(m.nombre.trim().toLowerCase(), m);
+            });
+            setPersonalizados(Array.from(mapLoc.values()));
+          }
         } catch { /* ignorar */ }
         return;
       }
@@ -27,43 +35,65 @@ export function useBestiario(session) {
         .select('*');
       
       if (data && !error) {
-        const parseados = data.map(m => ({
-          ...m,
-          id: m.id,
-          propietario_id: m.propietario_id,
-          visible: m.fuente === 'visible'
-        }));
-        setPersonalizados(parseados);
+        const mapa = new Map();
+        data.forEach(m => {
+          if (m && m.nombre) {
+            const clave = m.nombre.trim().toLowerCase();
+            if (!mapa.has(clave)) {
+              mapa.set(clave, {
+                ...m,
+                id: m.id,
+                propietario_id: m.propietario_id,
+                visible: m.fuente === 'visible'
+              });
+            }
+          }
+        });
+        setPersonalizados(Array.from(mapa.values()));
       }
     };
     
     cargarMonstruos();
   }, [session]);
 
+  // Lista única sin duplicados de nombre
   const todos = useMemo(() => {
     const mapa = new Map();
+    // 1. Monstruos oficiales SRD
     for (const m of MONSTRUOS_SRD) {
-      if (m && m.id) mapa.set(m.id, m);
-      else if (m && m.nombre) mapa.set(m.nombre.toLowerCase(), m);
+      if (m && m.nombre) {
+        mapa.set(m.nombre.trim().toLowerCase(), m);
+      }
     }
+    // 2. Personalizados (solo si no existen en SRD o si pertenecen al usuario)
     for (const m of personalizados) {
-      if (m && m.id) mapa.set(m.id, m);
-      else if (m && m.nombre) mapa.set(m.nombre.toLowerCase(), m);
+      if (m && m.nombre) {
+        const clave = m.nombre.trim().toLowerCase();
+        if (!mapa.has(clave) || m.propietario_id === userId) {
+          mapa.set(clave, m);
+        }
+      }
     }
     return Array.from(mapa.values());
-  }, [personalizados]);
+  }, [personalizados, userId]);
 
   const monstruos = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
     if (!termino) return todos;
-    return todos.filter((m) => m.nombre.toLowerCase().includes(termino) || m.tipo.toLowerCase().includes(termino));
+    return todos.filter((m) => 
+      m.nombre.toLowerCase().includes(termino) || 
+      (m.tipo && m.tipo.toLowerCase().includes(termino))
+    );
   }, [todos, busqueda]);
 
   const crearMonstruo = useCallback(async (monstruo) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       setPersonalizados((prev) => {
-        const nuevos = [...prev, { ...monstruo, id: crypto.randomUUID() }];
+        const mapa = new Map();
+        prev.forEach(p => mapa.set(p.nombre.trim().toLowerCase(), p));
+        mapa.set(monstruo.nombre.trim().toLowerCase(), { ...monstruo, id: crypto.randomUUID() });
+        const nuevos = Array.from(mapa.values());
         localStorage.setItem('dnd_bestiario_personalizados', JSON.stringify(nuevos));
         return nuevos;
       });
@@ -97,11 +127,16 @@ export function useBestiario(session) {
       acciones: monstruo.acciones || [],
       acciones_legendarias: monstruo.acciones_legendarias || [],
       reacciones: monstruo.reacciones || [],
-      fuente: monstruo.visible ? 'visible' : 'oculto' // Usamos fuente para guardar la visibilidad temporalmente
+      fuente: monstruo.visible ? 'visible' : 'oculto'
     }).select().single();
 
     if (data && !error) {
-      setPersonalizados((prev) => [...prev, { ...data, visible: data.fuente === 'visible' }]);
+      setPersonalizados((prev) => {
+        const mapa = new Map();
+        prev.forEach(p => mapa.set(p.nombre.trim().toLowerCase(), p));
+        mapa.set(data.nombre.trim().toLowerCase(), { ...data, visible: data.fuente === 'visible' });
+        return Array.from(mapa.values());
+      });
     }
   }, []);
 
