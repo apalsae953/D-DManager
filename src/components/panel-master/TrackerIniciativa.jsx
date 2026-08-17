@@ -98,7 +98,7 @@ function FilaParticipante({ participante, activo, onQuitar, onActualizar }) {
           value={participante.iniciativa}
           onChange={(evento) => onActualizar({ iniciativa: Number(evento.target.value) })}
           title="Iniciativa"
-          className="w-14 input-dnd px-1 py-1 text-center font-bold"
+          className="w-20 input-dnd px-2 py-1 text-center font-bold font-mono text-amber-300"
         />
 
         <span className="min-w-[8rem] flex-1 font-bold font-cinzel text-stone-200">{participante.nombre_visible}</span>
@@ -109,18 +109,18 @@ function FilaParticipante({ participante, activo, onQuitar, onActualizar }) {
             value={participante.pv_actual}
             onChange={(evento) => onActualizar({ pv_actual: Number(evento.target.value) })}
             title="PV actuales"
-            className="w-14 input-dnd px-1 py-1 text-center"
+            className="w-20 input-dnd px-2 py-1 text-center font-bold font-mono"
           />
           <span className="text-stone-400 font-bold">/ {participante.pv_maximo}</span>
         </div>
 
-        <label className="flex items-center gap-1 text-sm text-stone-400 font-bold">
+        <label className="flex items-center gap-1.5 text-sm text-stone-400 font-bold">
           CA
           <input
             type="number"
             value={participante.clase_armadura}
             onChange={(evento) => onActualizar({ clase_armadura: Number(evento.target.value) })}
-            className="w-12 input-dnd px-1 py-1 text-center"
+            className="w-16 input-dnd px-2 py-1 text-center font-bold font-mono"
           />
         </label>
 

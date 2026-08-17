@@ -17,6 +17,16 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-cinzel tracking-wider text-[#f6d9db];
   }
+
+  /* Eliminar flechas/spinners por defecto de inputs de número para evitar recortes */
+  input[type=number]::-webkit-inner-spin-button, 
+  input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
 }
 
 @layer components {
@@ -37,7 +47,7 @@
   }
   
   .input-dnd {
-    @apply w-full bg-[#111111]/80 border border-white/20 rounded-lg px-4 py-2.5 text-stone-100 focus:outline-none focus:border-sangre-500 focus:ring-1 focus:ring-sangre-500 transition-all placeholder-stone-500 font-sans shadow-inner;
+    @apply w-full bg-[#111111]/80 border border-white/20 rounded-lg px-3 py-2 text-stone-100 focus:outline-none focus:border-sangre-500 focus:ring-1 focus:ring-sangre-500 transition-all placeholder-stone-500 font-sans shadow-inner;
   }
   
   .input-dnd:disabled {

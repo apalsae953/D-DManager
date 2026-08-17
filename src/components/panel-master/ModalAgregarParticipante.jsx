@@ -172,7 +172,7 @@ export function ModalAgregarParticipante({
                     type="number"
                     value={iniciativaJugador}
                     onChange={(evento) => setIniciativaJugador(Number(evento.target.value))}
-                    className="w-16 input-dnd py-1.5 text-center text-lg font-bold"
+                    className="w-24 input-dnd py-1.5 px-2 text-center text-lg font-bold font-mono text-indigo-300"
                   />
                 </div>
 
