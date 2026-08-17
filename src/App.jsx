@@ -103,6 +103,8 @@ export default function App() {
           // Partidas como Master que existen
           const { data: dMaster } = await supabase
             .from('partidas')
+            .select('*')
+            .eq('master_id', session.user.id);
           const validMaster = (dMaster || []).filter(p => Boolean(p && p.id && p.nombre)).map(p => {
             let bitacoraData = p.bitacora;
             if (!bitacoraData) {
