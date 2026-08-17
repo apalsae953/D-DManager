@@ -51,10 +51,19 @@ export function ListaPersonajes({ personajes, misPartidasJugador = [], alSelecci
                     <h2 className="text-xl font-cinzel font-bold text-white drop-shadow-md">{p.nombre || 'Sin nombre'}</h2>
                     <p className="text-sm text-stone-300">{p.raza} {p.clase} - Nivel {p.nivel || 1}</p>
                     {partidaDelPersonaje ? (
-                      <p className="text-xs text-emerald-400 mt-1 font-semibold flex items-center gap-1 drop-shadow-md">
-                        <Shield className="w-3 h-3" />
-                        {partidaDelPersonaje.nombre}
-                      </p>
+                      <div className="flex items-center justify-between mt-1" onClick={e => e.stopPropagation()}>
+                        <p className="text-xs text-emerald-400 font-semibold flex items-center gap-1 drop-shadow-md">
+                          <Shield className="w-3 h-3" />
+                          {partidaDelPersonaje.nombre}
+                        </p>
+                        <button
+                          onClick={() => onAsignarPartida(p.id, null)}
+                          className="text-[10px] text-stone-400 hover:text-red-400 font-bold underline ml-2 transition-colors cursor-pointer"
+                          title="Desvincular personaje de esta campaña"
+                        >
+                          Desvincular
+                        </button>
+                      </div>
                     ) : (
                       <div className="mt-2" onClick={e => e.stopPropagation()}>
                         <button

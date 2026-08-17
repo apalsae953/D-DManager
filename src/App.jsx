@@ -342,14 +342,20 @@ export default function App() {
   };
 
   const manejarEliminarPartida = async (id) => {
-    if (!session) return;
-    const { error } = await supabase.from('partidas').delete().eq('id', id);
-    if (error) {
-      console.error("Error al eliminar partida:", error);
-      alert("Error al eliminar partida: " + error.message);
-    } else {
-      if (partida?.id === id) setPartida(null);
-      setMisPartidasMaster(prev => prev.filter(p => p.id !== id));
+    // Desvincular localmente
+    setPersonajes(prev => prev.map(p => p.partida_id === id ? { ...p, partida_id: null } : p));
+    if (partida?.id === id) setPartida(null);
+    setMisPartidasMaster(prev => prev.filter(p => p.id !== id));
+    setMisPartidasJugador(prev => prev.filter(p => p.id !== id));
+
+    if (session) {
+      // Limpiar partida_id en los personajes
+      await supabase.from('personajes').update({ partida_id: null }).eq('partida_id', id);
+      const { error } = await supabase.from('partidas').delete().eq('id', id);
+      if (error) {
+        console.error("Error al eliminar partida:", error);
+        alert("Error al eliminar partida: " + error.message);
+      }
     }
   };
 

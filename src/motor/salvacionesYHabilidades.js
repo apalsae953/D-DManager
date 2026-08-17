@@ -20,8 +20,8 @@ export function calcularBonoHabilidad(personaje, claveHabilidad, bonoCompetencia
 
   const modCaracteristica = modificadorCaracteristica(resolverValorCaracteristica(personaje.caracteristicas[claveCaracteristica]));
   const competencias = personaje.competencias_habilidad || { competente: [], pericia: [] };
-  const tienePericia = competencias.pericia?.includes(claveHabilidad);
-  const esCompetente = tienePericia || competencias.competente?.includes(claveHabilidad);
+  const esCompetente = (competencias.competente || []).includes(claveHabilidad);
+  const tienePericia = esCompetente && (competencias.pericia || []).includes(claveHabilidad);
   const multiplicador = tienePericia ? 2 : esCompetente ? 1 : 0;
 
   return modCaracteristica + bonoCompetencia * multiplicador;
