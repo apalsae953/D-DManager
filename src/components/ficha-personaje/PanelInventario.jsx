@@ -19,7 +19,7 @@ function clasificarObjeto(item) {
   const subtipo = (item.subtipo || '').toLowerCase().trim();
   const nombre = (item.nombre || '').toLowerCase().trim();
 
-  // 1. Armaduras y Escudos (Debe evaluarse ANTES que armas para evitar que "armadura" coincida con "arma")
+  // 1. Armaduras y Escudos (Debe evaluarse primero para evitar que "armadura" coincida con "arma")
   if (
     tipo.includes('armadura') || 
     tipo.includes('escudo') || 
@@ -31,14 +31,78 @@ function clasificarObjeto(item) {
     nombre.includes('coraza') ||
     nombre.includes('cuero tachonado') ||
     nombre.includes('placas') ||
+    nombre.includes('anillas') ||
     nombre.includes('loriga') ||
     nombre.includes('mallas') ||
-    nombre.includes('escudo')
+    nombre.includes('escudo') ||
+    nombre.includes('pieles') ||
+    nombre.includes('semiarmadura') ||
+    nombre.includes('acolchada')
   ) {
     return 'armaduras';
   }
 
-  // 2. Armas
+  // 2. Consumibles, Pociones, Munición (Evaluar ANTES que armas para que virotes, flechas, etc. sean consumibles)
+  if (
+    tipo.includes('poción') ||
+    tipo.includes('pocion') ||
+    tipo.includes('munición') ||
+    tipo.includes('municion') ||
+    tipo.includes('consumible') ||
+    subtipo.includes('munición') ||
+    subtipo.includes('municion') ||
+    subtipo.includes('consumible') ||
+    nombre.includes('virote') ||
+    nombre.includes('flecha') ||
+    nombre.includes('bala') ||
+    nombre.includes('aguja de') ||
+    nombre.includes('agujas') ||
+    nombre.includes('poción') ||
+    nombre.includes('pocion') ||
+    nombre.includes('elixir') ||
+    nombre.includes('antídoto') ||
+    nombre.includes('antidoto') ||
+    nombre.includes('ungüento') ||
+    nombre.includes('unguento') ||
+    nombre.includes('bálsamo') ||
+    nombre.includes('balsamo') ||
+    nombre.includes('veneno') ||
+    nombre.includes('agua bendita') ||
+    nombre.includes('aceite (frasco)') ||
+    nombre.includes('ración') ||
+    nombre.includes('raciones') ||
+    nombre.includes('comida') ||
+    nombre.includes('antorcha') ||
+    nombre.includes('vela') ||
+    nombre.includes('tiza') ||
+    nombre.includes('pergamino')
+  ) {
+    return 'pociones';
+  }
+
+  // 3. Herramientas, Kits, Instrumentos, Juegos
+  if (
+    tipo.includes('herramienta') ||
+    tipo.includes('instrumento') ||
+    tipo.includes('kit') ||
+    tipo.includes('útil') ||
+    tipo.includes('juego') ||
+    subtipo.includes('herramienta') ||
+    subtipo.includes('artesano') ||
+    subtipo.includes('instrumento') ||
+    subtipo.includes('juego') ||
+    nombre.includes('herramientas') ||
+    nombre.includes('instrumento') ||
+    nombre.includes('kit') ||
+    nombre.includes('juego de') ||
+    nombre.includes('baraja') ||
+    nombre.includes('ganzúa') ||
+    nombre.includes('ganzuas')
+  ) {
+    return 'herramientas';
+  }
+
+  // 4. Armas
   if (
     tipo === 'arma' ||
     tipo.startsWith('arma') ||
@@ -47,7 +111,12 @@ function clasificarObjeto(item) {
     tipo.includes('distancia') ||
     tipo.includes('cuerpo a cuerpo') ||
     subtipo.includes('arma') ||
+    subtipo.includes('marcial') ||
+    subtipo.includes('simple') ||
+    subtipo.includes('cuerpo a cuerpo') ||
+    subtipo.includes('a distancia') ||
     nombre.includes('espada') ||
+    nombre.includes('espadón') ||
     nombre.includes('arco') ||
     nombre.includes('daga') ||
     nombre.includes('hacha') ||
@@ -59,54 +128,26 @@ function clasificarObjeto(item) {
     nombre.includes('ballesta') ||
     nombre.includes('cimitarra') ||
     nombre.includes('alabarda') ||
+    nombre.includes('guja') ||
+    nombre.includes('pica') ||
     nombre.includes('tridente') ||
     nombre.includes('mangual') ||
     nombre.includes('estoque') ||
     nombre.includes('guadaña') ||
     nombre.includes('garrote') ||
-    nombre.includes('mangual') ||
-    nombre.includes('estoque') ||
+    nombre.includes('clava') ||
     nombre.includes('dardo') ||
     nombre.includes('jabalina') ||
-    nombre.includes('clava') ||
-    nombre.includes('honda')
+    nombre.includes('honda') ||
+    nombre.includes('red') ||
+    nombre.includes('hoz') ||
+    nombre.includes('látigo') ||
+    nombre.includes('latigo') ||
+    nombre.includes('lucero del alba') ||
+    nombre.includes('mayal') ||
+    nombre.includes('cerbatana')
   ) {
     return 'armas';
-  }
-
-  // 3. Consumibles, Pociones, Munición
-  if (
-    tipo.includes('poción') ||
-    tipo.includes('pocion') ||
-    tipo.includes('munición') ||
-    tipo.includes('municion') ||
-    tipo.includes('comida') ||
-    tipo.includes('racion') ||
-    tipo.includes('ración') ||
-    tipo.includes('pergamino') ||
-    nombre.includes('poción') ||
-    nombre.includes('pocion') ||
-    nombre.includes('flecha') ||
-    nombre.includes('virote') ||
-    nombre.includes('bala') ||
-    nombre.includes('antídoto') ||
-    nombre.includes('antidoto') ||
-    nombre.includes('ungüento')
-  ) {
-    return 'pociones';
-  }
-
-  // 4. Herramientas, Kits, Instrumentos
-  if (
-    tipo.includes('herramienta') ||
-    tipo.includes('instrumento') ||
-    tipo.includes('kit') ||
-    tipo.includes('útil') ||
-    nombre.includes('herramientas') ||
-    nombre.includes('instrumento') ||
-    nombre.includes('kit')
-  ) {
-    return 'herramientas';
   }
 
   // 5. Todo lo demás es Equipo / Varios
@@ -134,18 +175,21 @@ export function PanelInventario({ personaje, actualizarCampo }) {
   // Filtrado de los objetos que tiene el personaje
   const inventarioFiltrado = useMemo(() => {
     return equipoActual.filter(item => {
-      // Filtro de texto
-      const coincideTexto = !busquedaInventario.trim() || 
-        item.nombre.toLowerCase().includes(busquedaInventario.toLowerCase()) ||
-        (item.tipo && item.tipo.toLowerCase().includes(busquedaInventario.toLowerCase())) ||
-        (item.propiedades && item.propiedades.toLowerCase().includes(busquedaInventario.toLowerCase()));
+      const query = busquedaInventario.trim().toLowerCase();
+      // Si el usuario escribe algo en el buscador, busca independientemente del filtro de categoría:
+      if (query !== '') {
+        return (
+          item.nombre.toLowerCase().includes(query) ||
+          (item.tipo && item.tipo.toLowerCase().includes(query)) ||
+          (item.subtipo && item.subtipo.toLowerCase().includes(query)) ||
+          (item.propiedades && item.propiedades.toLowerCase().includes(query)) ||
+          (item.descripcion && item.descripcion.toLowerCase().includes(query))
+        );
+      }
 
-      if (!coincideTexto) return false;
-
-      // Filtro de categoría
+      // Si el buscador está vacío, filtra por la categoría seleccionada:
       if (filtroCategoria === 'todos') return true;
-      const cat = clasificarObjeto(item);
-      return cat === filtroCategoria;
+      return clasificarObjeto(item) === filtroCategoria;
     });
   }, [equipoActual, busquedaInventario, filtroCategoria]);
 
@@ -163,14 +207,21 @@ export function PanelInventario({ personaje, actualizarCampo }) {
   // Filtrado del manual SRD
   const objetosManualFiltrados = useMemo(() => {
     return EQUIPO.filter(item => {
-      const coincideTexto = !busquedaManual.trim() ||
-        item.nombre.toLowerCase().includes(busquedaManual.toLowerCase()) || 
-        (item.tipo && item.tipo.toLowerCase().includes(busquedaManual.toLowerCase()));
-      
-      if (!coincideTexto) return false;
+      const query = busquedaManual.trim().toLowerCase();
+      // Si el usuario escribe algo en el buscador del manual, busca independientemente del filtro de categoría:
+      if (query !== '') {
+        return (
+          item.nombre.toLowerCase().includes(query) || 
+          (item.tipo && item.tipo.toLowerCase().includes(query)) ||
+          (item.subtipo && item.subtipo.toLowerCase().includes(query)) ||
+          (item.descripcion && item.descripcion.toLowerCase().includes(query))
+        );
+      }
+
+      // Si el buscador está vacío, filtra por la categoría seleccionada:
       if (filtroCategoria === 'todos') return true;
       return clasificarObjeto(item) === filtroCategoria;
-    }).slice(0, 30);
+    }).slice(0, 40);
   }, [busquedaManual, filtroCategoria]);
 
   const añadirObjeto = (objeto) => {
