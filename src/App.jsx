@@ -402,15 +402,23 @@ export default function App() {
   };
 
   const manejarGuardarNotasPartida = async (notas) => {
-    if (!partida || !session) return;
-    
-    // Actualizar estado local inmediatamente para que el textarea sea reactivo
+    if (!partida) return;
     setPartida(prev => ({ ...prev, notas_master: notas }));
-    
-    // Guardar en Supabase (de forma asíncrona, asumiendo que no falla y sin bloquear UI)
-    const { error } = await supabase.from('partidas').update({ notas_master: notas }).eq('id', partida.id);
-    if (error) {
-      console.error("Error al guardar notas:", error);
+    if (session) {
+      const { error } = await supabase.from('partidas').update({ notas_master: notas }).eq('id', partida.id);
+      if (error) console.error("Error al guardar notas:", error);
+    }
+  };
+
+  const manejarGuardarBitacora = async (nuevaBitacora) => {
+    if (!partida) return;
+    setPartida(prev => ({ ...prev, bitacora: nuevaBitacora }));
+    try {
+      localStorage.setItem(`dnd_bitacora_${partida.id}`, JSON.stringify(nuevaBitacora));
+    } catch { /* ignorar */ }
+    if (session) {
+      const { error } = await supabase.from('partidas').update({ bitacora: nuevaBitacora }).eq('id', partida.id);
+      if (error) console.warn("Bitácora guardada localmente:", error.message);
     }
   };
 
@@ -585,6 +593,7 @@ export default function App() {
           onSalirPartida={() => setPartida(null)}
           onEliminarPartida={manejarEliminarPartida}
           onGuardarNotas={manejarGuardarNotasPartida}
+          onGuardarBitacora={manejarGuardarBitacora}
         />
       )}
 

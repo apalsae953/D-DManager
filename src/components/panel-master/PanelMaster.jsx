@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Swords, Skull, Calculator, Scroll } from 'lucide-react';
+import { Users, Swords, Skull, Calculator, Scroll, BookOpen } from 'lucide-react';
 import { usePanelMaster } from '../../hooks/usePanelMaster.js';
 import { useBestiario } from '../../hooks/useBestiario.js';
 import { modificadorCaracteristica } from '../../motor/index.js';
@@ -9,7 +9,7 @@ import { TrackerIniciativa } from './TrackerIniciativa.jsx';
 import { ModalAgregarParticipante } from './ModalAgregarParticipante.jsx';
 import { Bestiario } from '../bestiario/Bestiario.jsx';
 import { CalculadoraEncuentros } from '../bestiario/CalculadoraEncuentros.jsx';
-
+import { BitacoraCampana } from './BitacoraCampana.jsx';
 import { FichaPersonaje } from '../ficha-personaje/FichaPersonaje.jsx';
 
 const PESTANIAS = [
@@ -17,6 +17,7 @@ const PESTANIAS = [
   { clave: 'combate', etiqueta: 'Tracker de Iniciativa', Icono: Swords },
   { clave: 'bestiario', etiqueta: 'Bestiario', Icono: Skull },
   { clave: 'calculadora', etiqueta: 'Dificultad de Encuentros', Icono: Calculator },
+  { clave: 'bitacora', etiqueta: 'Resumen & Bitácora', Icono: BookOpen },
   { clave: 'notas', etiqueta: 'Notas de Campaña', Icono: Scroll },
 ];
 
@@ -24,7 +25,7 @@ function tirarIniciativa(modificador) {
   return 1 + Math.floor(Math.random() * 20) + modificador;
 }
 
-export function PanelMaster({ session, partida, personajes, misPartidasMaster, onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida, onExpulsarPersonaje, onEliminarPartida, onGuardarNotas }) {
+export function PanelMaster({ session, partida, personajes, misPartidasMaster, onSeleccionarPartida, onCrearPartida, onUnirsePartida, onSalirPartida, onExpulsarPersonaje, onEliminarPartida, onGuardarNotas, onGuardarBitacora }) {
   const {
     resumenesPersonajes,
     participantes,
@@ -150,6 +151,12 @@ export function PanelMaster({ session, partida, personajes, misPartidasMaster, o
             )}
             {pestaniaActiva === 'calculadora' && (
               <CalculadoraEncuentros monstruosDisponibles={todosLosMonstruos} />
+            )}
+            {pestaniaActiva === 'bitacora' && (
+              <BitacoraCampana 
+                partida={partida} 
+                onGuardarBitacora={onGuardarBitacora} 
+              />
             )}
             {pestaniaActiva === 'notas' && (
               <div className="h-full flex flex-col p-4 animate-fade-in overflow-y-auto pr-2 pb-10">
